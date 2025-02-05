@@ -1,0 +1,341 @@
+from __future__ import annotations
+
+import re
+import random
+import time
+import os 
+
+from enum import Enum
+
+from src.utils.common import docker_exec, ueransim_exec, ue_list, UE_CONFIG_PATH
+from src.utils.ueransim.gnb import gNodeB
+from src.utils.ueransim.session import PDUSession
+
+class UEState(Enum):
+    CONNECTED = "CM-CONNECTED"
+    IDLE = "CM-IDLE"    
+        
+class UserEquipment:
+    ue_id_counter = 1  # class variable
+    timeout = 30
+
+    def __init__(self, id:int, ran_id: int, amf_id:int, imsi: str, sessions:list[PDUSession], state=UEState.CONNECTED):
+        self.id = id
+        self.ran_id = ran_id
+        self.amf_id = amf_id
+        self.imsi = imsi
+        self.state = state
+        self.sessions = sessions
+        
+        self.teid_downlink = 2 * self.id - 1
+        self.teid_uplink = 2 * self.teid_downlink   
+
+        UserEquipment.ue_id_counter += 1
+        
+    def get_session_by_id(self, session_id: int) -> PDUSession | None:
+        for session in self.sessions:
+            if session.id == session_id:
+                return session
+
+    # ------- UE registration
+
+    def get_registered() -> list[str]:
+        "Returns a list of IMSIs that are currently registered in the UERANSIM network."
+        components = ueransim_exec("./nr-cli --dump")
+        imsi_names = re.findall(r"^imsi-.*",components, re.MULTILINE)
+        return imsi_names
+
+    def get_known_imsi() -> list [str]:
+        "Returns a list of known IMSIs from the MongoDB database."
+        lines = docker_exec(
+            "mongodb",
+            "mongo --eval \"db.getSiblingDB('free5gc').subscriptionData.identityData.find();\""
+        )
+        known_imsi = re.findall(r"imsi-\d{15}", lines)
+        return known_imsi
+
+    def get_available_imsi() -> list[str]:
+        "Returns a random IMSI that is not currently registered."
+        available_imsi = [imsi for imsi in UserEquipment.get_known_imsi() if imsi not in UserEquipment.get_registered()]
+        return random.choice(available_imsi)
+
+    def register_new(imsi:str) -> UserEquipment | None:
+        """
+        Attempts to register a User Equipment (UE) with the given IMSI on the network.
+        Args:
+            imsi (str): The IMSI of the UE to register.
+        Returns:
+            UserEquipment | None: The registered UserEquipment instance if successful, otherwise None.
+        """
+        
+        gnb = gNodeB.get_registered_gnb()[0]  # Get the first registered gNB
+        ues_in_gnb = gNodeB.get_registered_ues_in_gnb(gnb) # Get the previous list of UEs in the gNB
+        
+        ueransim_exec(f"./nr-ue -c {UE_CONFIG_PATH} -i {imsi}", read=False) # Start the UE with the given IMSI
+            
+        is_registered = UserEquipment.wait_ue_registration(imsi, ues_in_gnb)
+            
+        # Wait for the ue to be registered
+        if is_registered:
+                
+            new_ues_in_gnb = [ue_dict for ue_dict in gNodeB.get_registered_ues_in_gnb(gnb) if ue_dict not in ues_in_gnb]
+            new_ue_in_gnb  = new_ues_in_gnb[0]  # Get the first new UE
+                        
+            sessions = [
+                PDUSession(
+                    session_id = session["session_id"],
+                    imsi       = imsi,
+                    address    = session["address"],
+                    iface      = session["iface"],
+                    state      = session["state"]
+                )
+                for session in PDUSession.get_ue_sessions(imsi)
+            ]
+
+            ue = UserEquipment(
+                id = int(new_ue_in_gnb["ue-id"]),
+                ran_id = int(new_ue_in_gnb["ran-ngap-id"]),
+                amf_id = int(new_ue_in_gnb["amf-ngap-id"]),
+                imsi = imsi,
+                sessions = sessions,
+                state = UEState.CONNECTED
+            )
+            ue_list.append(ue)  # Add the new UE to the global list
+            return ue
+            
+        else : # UE was not registered properly in UERANSIM
+            return None
+
+    def wait_ue_registration(imsi:str, ues_in_gnb:list[dict]) -> bool:
+        """
+        Waits for a UE (User Equipment) with the specified IMSI to register with the first available gNodeB and have at least one PDU session created.
+        Args:
+            imsi (str): The IMSI of the UE to wait for registration.
+        Returns:
+            bool: True if the UE is registered and has a session within the timeout period, False otherwise.
+        """
+        
+        gnb = gNodeB.get_registered_gnb()[0]  # Get the first registered gNB
+        
+        # Wait until success or timeout
+        for _ in range(UserEquipment.timeout):
+            
+            # Do the difference to find the new UE in the gNB
+            # This is necessary because the gNB keep its own ue_id and they are needed to manage sessions
+            new_ues_in_gnb = [ue_dict for ue_dict in gNodeB.get_registered_ues_in_gnb(gnb) if ue_dict not in ues_in_gnb]
+            
+            # Check if the sessions are created 
+            ue_sessions = PDUSession.get_ue_sessions(imsi)
+            
+            # Wait for a new UE appear in the ueransim cli and its session to be registered
+            if len(new_ues_in_gnb) > 0 and len(ue_sessions) > 0:
+                return True
+            
+            time.sleep(1)
+                
+        return False
+    
+    def wait_ue_deregistration(ue: UserEquipment) -> bool:
+        """
+        Waits for the specified UE to deregister by polling the list of registered UEs until the UE's IMSI is absent or a timeout occurs.
+        Args:
+            ue (UserEquipment): The user equipment instance to check for deregistration.
+        Returns:
+            bool: True if the UE is deregistered before timeout, False otherwise.
+        """
+        # Wait until success or timeout
+        for _ in range(UserEquipment.timeout):
+            registered_ues = UserEquipment.get_registered()
+            if ue.imsi not in registered_ues : 
+                return True
+            
+            time.sleep(1)
+        return False
+    
+    def deregister(ue: UserEquipment) -> bool:
+        """
+        Deregisters a User Equipment (UE) by IMSI, kills its process to prevent reboot, and returns True if deregistration was successful.
+        Args:
+            ue (UserEquipment): The user equipment instance to deregister.
+        Returns:
+            bool: True if the UE was successfully deregistered, False otherwise.
+        """
+
+        imsi = ue.imsi
+        
+        # Send deregistration messages
+        ueransim_exec(f"./nr-cli {imsi} -e 'deregister normal'")
+        
+        # Also kill the process to avoid automatic reboot
+        pid = ueransim_exec(f"ps aux | grep {imsi} | grep -v grep | awk '{{print $2}}'")
+        pid = pid.strip()
+        if pid :
+            ueransim_exec(f"kill -9 {pid}")
+            
+        is_deregistered = ue.wait_ue_deregistration()
+        if is_deregistered:
+            ue_list.remove(ue)  # Remove the UE from the global list
+            return True
+        
+        else : 
+            return False
+
+    def terminate_all() -> None:
+        ue_process = os.popen("ps aux | grep './nr-ue -c' | grep -v grep | awk '{print $2}'").read()
+        for pid in ue_process.split("\n"):
+            if pid.isdigit():
+                os.popen(f"sudo kill -9 {pid}")
+        time.sleep(1)
+
+    # ------- UE state management
+
+    def get_status(ue: UserEquipment) -> UEState:
+        """
+        Returns the connection management (cm) state of the given UserEquipment by executing a status command and parsing its output.
+        Args:
+            ue (UserEquipment): The user equipment instance to query.
+        Returns:
+            UEState: The cm-state of the user equipment if found, otherwise None.
+        """
+
+        status = ueransim_exec(f"./nr-cli {ue.imsi} -e status") # get the status of the ue
+        match  = re.search(r"cm-state:\s*(\S+)", status) # sarch in the command output for the cm-state
+        if match: 
+            return UEState(match.group(1))
+
+    def get_idle_ues() -> list[UserEquipment]:
+        return [ue for ue in ue_list if ue.state == UEState.IDLE]   
+        
+    def get_connected_ues() -> list[UserEquipment]:
+        return [ue for ue in ue_list if ue.state == UEState.CONNECTED]   
+
+    def wait_state_change(ue: UserEquipment) -> bool:
+        """
+        Waits for the UserEquipment (UE) to reach the desired state within a timeout period.
+        Update the new state to ue.state if there are changes
+        Args:
+            ue (UserEquipment): The user equipment instance to monitor.
+        Returns:
+            bool: True if the UE reaches the desired state within the timeout, False otherwise.
+        """
+        
+        for _ in range(UserEquipment.timeout):
+            new_status = ue.get_status()
+            if new_status != ue.state: # check if the ue is in IDLE state
+                ue.state = new_status
+                return True
+            
+            time.sleep(1)
+        return False
+
+    def context_release(ue: UserEquipment) -> bool:
+        """
+        Sets the given UserEquipment (UE) to IDLE state if currently CONNECTED.
+        Args:
+            ue (UserEquipment): The user equipment instance to set to IDLE.
+        Returns:
+            bool: True if the UE was successfully set to IDLE, False otherwise.
+        """
+        
+        gnb = gNodeB.get_registered_gnb()[0]
+        
+        if ue.state == UEState.CONNECTED:
+            ueransim_exec(f"./nr-cli {gnb} -e 'ue-release {ue.id}'") # release the ue
+            state_changed = ue.wait_state_change()
+            if state_changed and ue.state == UEState.IDLE: 
+                return True
+        
+        return False
+
+    def uplink_traffic(ue: UserEquipment, session_id:int, packet_quantity:int, dn_domain:str) -> bool:
+        """
+        Sends a specified number of ping packets from a UE session to a given DN domain and checks if all packets are successfully transmitted and received.
+
+        Args:
+            ue (UserEquipment): The user equipment instance.
+            session_id (int): The session identifier.
+            packet_quantity (int): Number of packets to send.
+            dn_domain (str): Destination domain name.
+
+        Returns:
+            bool: True if all packets are transmitted and received, False otherwise.
+        """
+        
+        res = ueransim_exec(f"ping {dn_domain} -I {ue.sessions[session_id].iface} -c {packet_quantity}")
+        match = re.search(r"(\d+)\s+packets transmitted,\s+(\d+)\s+received", res)
+        if match:
+            transmitted = int(match.group(1))
+            # received = int(match.group(2))
+            return transmitted == packet_quantity
+        return False
+
+    def downlink_traffic(ue: UserEquipment, session_id:int, packet_quantity:int) -> bool:
+        """
+        Sends a specified number of ping packets to a User Equipment (UE) session and checks if all packets are successfully transmitted and received.
+
+        Args:
+            ue (UserEquipment): The user equipment instance.
+            session_id (int): The session identifier.
+            packet_quantity (int): Number of packets to send.
+
+        Returns:
+            bool: True if all packets are transmitted and received, False otherwise.
+        """
+        
+        res = docker_exec("upf", f"ping {ue.sessions[session_id].address} -I upfgtp -c {packet_quantity}")
+        match = re.search(r"(\d+)\s+packets transmitted,\s+(\d+)\s+received", res)
+        if match:
+            transmitted = int(match.group(1))
+            # received = int(match.group(2))
+            return transmitted == packet_quantity
+        return False
+
+    def uplink_wake(ue: UserEquipment, session_id:int, packet_quantity:int, dn_domain:str) -> bool:
+        """
+        Attempts to wake up a User Equipment (UE) from IDLE state by sending uplink traffic to a specified domain.
+        If the UE transitions to CM-CONNECTED state, updates its state to CONNECTED.
+        Args:
+            ue (UserEquipment): The user equipment instance to wake up.
+            packet_quantity (int): Number of packets to send.
+            dn_domain (str): Destination domain for the ping command.
+        Returns:
+            bool: True if the UE was successfully woken up and registered, False otherwise.
+        """
+        
+        if ue.state == UEState.IDLE:
+            
+            # Send uplink packets, if it fails, return False
+            sent = ue.uplink_traffic(session_id, packet_quantity, dn_domain)  # Send ICMP packets to wake up the UE
+            if sent:
+            
+                # Check if the UE is now connected
+                state_changed = ue.wait_state_change()
+                if state_changed and ue.state == UEState.CONNECTED: 
+                    return True
+        
+        return False
+
+    def downlink_wake(ue: UserEquipment, session_id:int, packet_quantity:int) -> bool:
+        """
+        Attempts to wake up a user equipment (UE) from IDLE state by sending downlink packets.
+        Returns True if the UE transitions to CONNECTED state, otherwise False.
+        Args:
+            ue (UserEquipment): The user equipment instance to wake.
+            packet_quantity (int): Number of packets to send.
+        Returns:
+            bool: True if UE is successfully woken up, False otherwise.
+        """
+        
+        if ue.state == UEState.IDLE:
+            
+            # Send downlink packets, if it fails, return False
+            sent = ue.downlink_traffic(session_id, packet_quantity)
+            if sent:
+        
+                # Check if the UE is now connected
+                state_changed = ue.wait_state_change()
+                if state_changed and ue.state == UEState.CONNECTED: 
+                    return True
+        
+        return False
+

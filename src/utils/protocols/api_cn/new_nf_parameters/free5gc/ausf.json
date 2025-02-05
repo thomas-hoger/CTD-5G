@@ -1,0 +1,23 @@
+{
+    "ausfInfo": {},
+    "nfServices": [
+        {
+            "serviceInstanceId": "5306aa5a-ba65-4829-b4ef-a5cf56bb9940",
+            "serviceName": "nausf-auth",
+            "versions": [
+                {
+                    "apiVersionInUri": "v1",
+                    "apiFullVersion": "1.0.3"
+                }
+            ],
+            "scheme": "http",
+            "nfServiceStatus": "REGISTERED",
+            "ipEndPoints": [
+                {
+                    "ipv4Address": "ausf.free5gc.org",
+                    "port": 8000
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,105 @@
+{
+    "udmInfo": {},
+    "nfServices": [
+        {
+            "serviceInstanceId": "3",
+            "serviceName": "nudm-ee",
+            "versions": [
+                {
+                    "apiVersionInUri": "v1",
+                    "apiFullVersion": "1.0.3"
+                }
+            ],
+            "scheme": "http",
+            "nfServiceStatus": "REGISTERED",
+            "ipEndPoints": [
+                {
+                    "ipv4Address": "udm.free5gc.org",
+                    "transport": "TCP",
+                    "port": 8000
+                }
+            ],
+            "apiPrefix": "http://udm.free5gc.org:8000"
+        },
+        {
+            "serviceInstanceId": "4",
+            "serviceName": "nudm-pp",
+            "versions": [
+                {
+                    "apiVersionInUri": "v1",
+                    "apiFullVersion": "1.0.3"
+                }
+            ],
+            "scheme": "http",
+            "nfServiceStatus": "REGISTERED",
+            "ipEndPoints": [
+                {
+                    "ipv4Address": "udm.free5gc.org",
+                    "transport": "TCP",
+                    "port": 8000
+                }
+            ],
+            "apiPrefix": "http://udm.free5gc.org:8000"
+        },
+        {
+            "serviceInstanceId": "0",
+            "serviceName": "nudm-sdm",
+            "versions": [
+                {
+                    "apiVersionInUri": "v1",
+                    "apiFullVersion": "1.0.3"
+                }
+            ],
+            "scheme": "http",
+            "nfServiceStatus": "REGISTERED",
+            "ipEndPoints": [
+                {
+                    "ipv4Address": "udm.free5gc.org",
+                    "transport": "TCP",
+                    "port": 8000
+                }
+            ],
+            "apiPrefix": "http://udm.free5gc.org:8000"
+        },
+        {
+            "serviceInstanceId": "1",
+            "serviceName": "nudm-uecm",
+            "versions": [
+                {
+                    "apiVersionInUri": "v1",
+                    "apiFullVersion": "1.0.3"
+                }
+            ],
+            "scheme": "http",
+            "nfServiceStatus": "REGISTERED",
+            "ipEndPoints": [
+                {
+                    "ipv4Address": "udm.free5gc.org",
+                    "transport": "TCP",
+                    "port": 8000
+                }
+            ],
+            "apiPrefix": "http://udm.free5gc.org:8000"
+        },
+        {
+            "serviceInstanceId": "2",
+            "serviceName": "nudm-ueau",
+            "versions": [
+                {
+                    "apiVersionInUri": "v1",
+                    "apiFullVersion": "1.0.3"
+                }
+            ],
+            "scheme": "http",
+            "nfServiceStatus": "REGISTERED",
+            "ipEndPoints": [
+                {
+                    "ipv4Address": "udm.free5gc.org",
+                    "transport": "TCP",
+                    "port": 8000
+                }
+            ],
+            "apiPrefix": "http://udm.free5gc.org:8000"
+        }
+    ]
+}

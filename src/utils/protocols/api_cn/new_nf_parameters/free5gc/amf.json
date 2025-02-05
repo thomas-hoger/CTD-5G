@@ -1,0 +1,149 @@
+{
+    "plmnList": [
+        {
+            "mcc": "208",
+            "mnc": "93"
+        }
+    ],
+    "sNssais": [
+        {
+            "sst": 1,
+            "sd": "010203"
+        },
+        {
+            "sst": 1,
+            "sd": "112233"
+        }
+    ],
+    "amfInfo": {
+        "amfSetId": "3f8",
+        "amfRegionId": "ca",
+        "guamiList": [
+            {
+                "plmnId": {
+                    "mcc": "208",
+                    "mnc": "93"
+                },
+                "amfId": "cafe00"
+            }
+        ],
+        "taiList": [
+            {
+                "plmnId": {
+                    "mcc": "208",
+                    "mnc": "93"
+                },
+                "tac": "000001"
+            }
+        ]
+    },
+    "nfServices": [
+        {
+            "serviceInstanceId": "0",
+            "serviceName": "namf-comm",
+            "versions": [
+                {
+                    "apiVersionInUri": "v1",
+                    "apiFullVersion": "1.0.9"
+                }
+            ],
+            "scheme": "http",
+            "nfServiceStatus": "REGISTERED",
+            "ipEndPoints": [
+                {
+                    "ipv4Address": "amf.free5gc.org",
+                    "transport": "TCP",
+                    "port": 8000
+                }
+            ],
+            "apiPrefix": "http://amf.free5gc.org:8000"
+        },
+        {
+            "serviceInstanceId": "1",
+            "serviceName": "namf-evts",
+            "versions": [
+                {
+                    "apiVersionInUri": "v1",
+                    "apiFullVersion": "1.0.9"
+                }
+            ],
+            "scheme": "http",
+            "nfServiceStatus": "REGISTERED",
+            "ipEndPoints": [
+                {
+                    "ipv4Address": "amf.free5gc.org",
+                    "transport": "TCP",
+                    "port": 8000
+                }
+            ],
+            "apiPrefix": "http://amf.free5gc.org:8000"
+        },
+        {
+            "serviceInstanceId": "2",
+            "serviceName": "namf-mt",
+            "versions": [
+                {
+                    "apiVersionInUri": "v1",
+                    "apiFullVersion": "1.0.9"
+                }
+            ],
+            "scheme": "http",
+            "nfServiceStatus": "REGISTERED",
+            "ipEndPoints": [
+                {
+                    "ipv4Address": "amf.free5gc.org",
+                    "transport": "TCP",
+                    "port": 8000
+                }
+            ],
+            "apiPrefix": "http://amf.free5gc.org:8000"
+        },
+        {
+            "serviceInstanceId": "3",
+            "serviceName": "namf-loc",
+            "versions": [
+                {
+                    "apiVersionInUri": "v1",
+                    "apiFullVersion": "1.0.9"
+                }
+            ],
+            "scheme": "http",
+            "nfServiceStatus": "REGISTERED",
+            "ipEndPoints": [
+                {
+                    "ipv4Address": "amf.free5gc.org",
+                    "transport": "TCP",
+                    "port": 8000
+                }
+            ],
+            "apiPrefix": "http://amf.free5gc.org:8000"
+        },
+        {
+            "serviceInstanceId": "4",
+            "serviceName": "namf-oam",
+            "versions": [
+                {
+                    "apiVersionInUri": "v1",
+                    "apiFullVersion": "1.0.9"
+                }
+            ],
+            "scheme": "http",
+            "nfServiceStatus": "REGISTERED",
+            "ipEndPoints": [
+                {
+                    "ipv4Address": "amf.free5gc.org",
+                    "transport": "TCP",
+                    "port": 8000
+                }
+            ],
+            "apiPrefix": "http://amf.free5gc.org:8000"
+        }
+    ],
+    "defaultNotificationSubscriptions": [
+        {
+            "notificationType": "N1_MESSAGES",
+            "callbackUri": "http://amf.free5gc.org:8000/namf-callback/v1/n1-message-notify",
+            "n1MessageClass": "5GMM"
+        }
+    ]
+}
