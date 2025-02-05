@@ -1,0 +1,89 @@
+{
+    "plmnList": [
+        {
+            "mcc": "208",
+            "mnc": "93"
+        }
+    ],
+    "sNssais": [
+        {
+            "sst": 1,
+            "sd": "010203"
+        },
+        {
+            "sst": 1,
+            "sd": "112233"
+        }
+    ],
+    "locality": "area1",
+    "smfInfo": {
+        "sNssaiSmfInfoList": [
+            {
+                "sNssai": {
+                    "sst": 1,
+                    "sd": "010203"
+                },
+                "dnnSmfInfoList": [
+                    {
+                        "dnn": "internet"
+                    }
+                ]
+            },
+            {
+                "sNssai": {
+                    "sst": 1,
+                    "sd": "112233"
+                },
+                "dnnSmfInfoList": [
+                    {
+                        "dnn": "internet"
+                    }
+                ]
+            }
+        ]
+    },
+    "nfServices": [
+        {
+            "serviceInstanceId": "956525d8-c7f6-4f5f-990e-06fb09fe8c8bnsmf-pdusession",
+            "serviceName": "nsmf-pdusession",
+            "versions": [
+                {
+                    "apiVersionInUri": "v1",
+                    "apiFullVersion": "https://smf.free5gc.org:8000/nsmf-pdusession/v1",
+                    "expiry": "2025-06-20T18:28:57.627365175Z"
+                }
+            ],
+            "scheme": "https",
+            "nfServiceStatus": "REGISTERED",
+            "apiPrefix": "http://smf.free5gc.org:8000"
+        },
+        {
+            "serviceInstanceId": "956525d8-c7f6-4f5f-990e-06fb09fe8c8bnsmf-event-exposure",
+            "serviceName": "nsmf-event-exposure",
+            "versions": [
+                {
+                    "apiVersionInUri": "v1",
+                    "apiFullVersion": "https://smf.free5gc.org:8000/nsmf-pdusession/v1",
+                    "expiry": "2025-06-20T18:28:57.627365175Z"
+                }
+            ],
+            "scheme": "https",
+            "nfServiceStatus": "REGISTERED",
+            "apiPrefix": "http://smf.free5gc.org:8000"
+        },
+        {
+            "serviceInstanceId": "956525d8-c7f6-4f5f-990e-06fb09fe8c8bnsmf-oam",
+            "serviceName": "nsmf-oam",
+            "versions": [
+                {
+                    "apiVersionInUri": "v1",
+                    "apiFullVersion": "https://smf.free5gc.org:8000/nsmf-pdusession/v1",
+                    "expiry": "2025-06-20T18:28:57.627365175Z"
+                }
+            ],
+            "scheme": "https",
+            "nfServiceStatus": "REGISTERED",
+            "apiPrefix": "http://smf.free5gc.org:8000"
+        }
+    ]
+}

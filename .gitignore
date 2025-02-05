@@ -1,0 +1,9 @@
+.pytest_cache
+__pycache__/
+*.pyc
+local
+*.ipynb
+test_thomas
+test.py
+output
+*.pcap

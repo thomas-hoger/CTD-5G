@@ -1,0 +1,1 @@
+new_nf_parameters contains a list of parameters gathered from the legitimate instanciation of NF instances. It allow to initiate new instances with realistic parameters

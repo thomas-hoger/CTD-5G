@@ -1,0 +1,25 @@
+{
+    "chfInfo": {},
+    "nfServices": [
+        {
+            "serviceInstanceId": "539d38a9-9f9b-40c2-8cb5-da2594e9d314",
+            "serviceName": "nchf-convergedcharging",
+            "versions": [
+                {
+                    "apiVersionInUri": "v1",
+                    "apiFullVersion": "1.0.3"
+                }
+            ],
+            "scheme": "http",
+            "nfServiceStatus": "REGISTERED",
+            "ipEndPoints": [
+                {
+                    "ipv4Address": "chf.free5gc.org",
+                    "transport": "TCP",
+                    "port": 8000
+                }
+            ],
+            "apiPrefix": "http://chf.free5gc.org:8000"
+        }
+    ]
+}

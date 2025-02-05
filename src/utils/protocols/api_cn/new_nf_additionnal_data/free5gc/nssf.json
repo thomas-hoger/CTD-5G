@@ -1,0 +1,50 @@
+{
+    "plmnList": [
+        {
+            "mcc": "208",
+            "mnc": "93"
+        }
+    ],
+    "nfServices": [
+        {
+            "serviceInstanceId": "0",
+            "serviceName": "nnssf-nsselection",
+            "versions": [
+                {
+                    "apiVersionInUri": "v1",
+                    "apiFullVersion": "1.0.2"
+                }
+            ],
+            "scheme": "http",
+            "nfServiceStatus": "REGISTERED",
+            "ipEndPoints": [
+                {
+                    "ipv4Address": "nssf.free5gc.org",
+                    "transport": "TCP",
+                    "port": 8000
+                }
+            ],
+            "apiPrefix": "http://nssf.free5gc.org:8000"
+        },
+        {
+            "serviceInstanceId": "1",
+            "serviceName": "nnssf-nssaiavailability",
+            "versions": [
+                {
+                    "apiVersionInUri": "v1",
+                    "apiFullVersion": "1.0.2"
+                }
+            ],
+            "scheme": "http",
+            "nfServiceStatus": "REGISTERED",
+            "ipEndPoints": [
+                {
+                    "ipv4Address": "nssf.free5gc.org",
+                    "transport": "TCP",
+                    "port": 8000
+                }
+            ],
+            "apiPrefix": "http://nssf.free5gc.org:8000"
+        }
+    ]
+}

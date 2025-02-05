@@ -1,0 +1,29 @@
+{
+    "udrInfo": {
+        "supportedDataSets": [
+            "SUBSCRIPTION"
+        ]
+    },
+    "nfServices": [
+        {
+            "serviceInstanceId": "0",
+            "serviceName": "nudr-dr",
+            "versions": [
+                {
+                    "apiVersionInUri": "v1",
+                    "apiFullVersion": "1.1.0"
+                }
+            ],
+            "scheme": "http",
+            "nfServiceStatus": "REGISTERED",
+            "ipEndPoints": [
+                {
+                    "ipv4Address": "udr.free5gc.org",
+                    "transport": "TCP",
+                    "port": 8000
+                }
+            ],
+            "apiPrefix": "http://udr.free5gc.org:8000"
+        }
+    ]
+}

@@ -1,0 +1,5 @@
+- currently, when you do a pdu session release, the session automatically restarts 
+    - unless we find out where and how to prevent this, we can only have a benign restart.
+- nf create and delete instance are sent from the host (always the same IP)
+    - this is not realistic because in normal scenarios the NF registers themselves and the IP the NF use to register is the same that the one in the IP layer of its packet
+    - to fix this we could send the http packets through scapy and spoof the src of the IP layer to match the instance ip 

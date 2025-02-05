@@ -1,0 +1,133 @@
+{
+    "locality": "area1",
+    "pcfInfo": {
+        "dnnList": [
+            "free5gc",
+            "internet"
+        ]
+    },
+    "nfServices": [
+        {
+            "serviceInstanceId": "0",
+            "serviceName": "npcf-am-policy-control",
+            "versions": [
+                {
+                    "apiVersionInUri": "v1",
+                    "apiFullVersion": "1.0.2"
+                }
+            ],
+            "scheme": "http",
+            "nfServiceStatus": "REGISTERED",
+            "ipEndPoints": [
+                {
+                    "ipv4Address": "pcf.free5gc.org",
+                    "transport": "TCP",
+                    "port": 8000
+                }
+            ],
+            "apiPrefix": "http://pcf.free5gc.org:8000"
+        },
+        {
+            "serviceInstanceId": "1",
+            "serviceName": "npcf-smpolicycontrol",
+            "versions": [
+                {
+                    "apiVersionInUri": "v1",
+                    "apiFullVersion": "1.0.2"
+                }
+            ],
+            "scheme": "http",
+            "nfServiceStatus": "REGISTERED",
+            "ipEndPoints": [
+                {
+                    "ipv4Address": "pcf.free5gc.org",
+                    "transport": "TCP",
+                    "port": 8000
+                }
+            ],
+            "apiPrefix": "http://pcf.free5gc.org:8000",
+            "supportedFeatures": "3fff"
+        },
+        {
+            "serviceInstanceId": "2",
+            "serviceName": "npcf-bdtpolicycontrol",
+            "versions": [
+                {
+                    "apiVersionInUri": "v1",
+                    "apiFullVersion": "1.0.2"
+                }
+            ],
+            "scheme": "http",
+            "nfServiceStatus": "REGISTERED",
+            "ipEndPoints": [
+                {
+                    "ipv4Address": "pcf.free5gc.org",
+                    "transport": "TCP",
+                    "port": 8000
+                }
+            ],
+            "apiPrefix": "http://pcf.free5gc.org:8000"
+        },
+        {
+            "serviceInstanceId": "3",
+            "serviceName": "npcf-policyauthorization",
+            "versions": [
+                {
+                    "apiVersionInUri": "v1",
+                    "apiFullVersion": "1.0.2"
+                }
+            ],
+            "scheme": "http",
+            "nfServiceStatus": "REGISTERED",
+            "ipEndPoints": [
+                {
+                    "ipv4Address": "pcf.free5gc.org",
+                    "transport": "TCP",
+                    "port": 8000
+                }
+            ],
+            "apiPrefix": "http://pcf.free5gc.org:8000",
+            "supportedFeatures": "3"
+        },
+        {
+            "serviceInstanceId": "4",
+            "serviceName": "npcf-eventexposure",
+            "versions": [
+                {
+                    "apiVersionInUri": "v1",
+                    "apiFullVersion": "1.0.2"
+                }
+            ],
+            "scheme": "http",
+            "nfServiceStatus": "REGISTERED",
+            "ipEndPoints": [
+                {
+                    "ipv4Address": "pcf.free5gc.org",
+                    "transport": "TCP",
+                    "port": 8000
+                }
+            ],
+            "apiPrefix": "http://pcf.free5gc.org:8000"
+        },
+        {
+            "serviceInstanceId": "5",
+            "serviceName": "npcf-ue-policy-control",
+            "versions": [
+                {
+                    "apiVersionInUri": "v1",
+                    "apiFullVersion": "1.0.2"
+                }
+            ],
+            "scheme": "http",
+            "nfServiceStatus": "REGISTERED",
+            "ipEndPoints": [
+                {
+                    "ipv4Address": "pcf.free5gc.org",
+                    "transport": "TCP",
+                    "port": 8000
+                }
+            ],
+            "apiPrefix": "http://pcf.free5gc.org:8000"
+        }
+    ]
+}

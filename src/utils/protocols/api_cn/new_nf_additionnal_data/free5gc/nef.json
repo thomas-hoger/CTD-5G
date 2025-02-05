@@ -1,0 +1,44 @@
+{
+    "nfServices": [
+        {
+            "serviceInstanceId": "0",
+            "serviceName": "nnef-pfdmanagement",
+            "versions": [
+                {
+                    "apiVersionInUri": "v1",
+                    "apiFullVersion": "1.0.1"
+                }
+            ],
+            "scheme": "http",
+            "nfServiceStatus": "REGISTERED",
+            "ipEndPoints": [
+                {
+                    "ipv4Address": "nef.free5gc.org",
+                    "transport": "TCP",
+                    "port": 8000
+                }
+            ],
+            "apiPrefix": "http://nef.free5gc.org:8000"
+        },
+        {
+            "serviceInstanceId": "1",
+            "serviceName": "nnef-oam",
+            "versions": [
+                {
+                    "apiVersionInUri": "v1",
+                    "apiFullVersion": "1.0.1"
+                }
+            ],
+            "scheme": "http",
+            "nfServiceStatus": "REGISTERED",
+            "ipEndPoints": [
+                {
+                    "ipv4Address": "nef.free5gc.org",
+                    "transport": "TCP",
+                    "port": 8000
+                }
+            ],
+            "apiPrefix": "http://nef.free5gc.org:8000"
+        }
+    ]
+}
