@@ -240,39 +240,39 @@ class CNFuzzing:
         k = min(k, len(methods))
         return random.sample(methods, k)
 
-    def setup_fuzzer(self, api_spec, nf: str, display: bool = True) -> str | None :
-
-        """
-            Create a nf and get a token with a scope depending on the need expressed in the api specification
-            Return a token if success else an empty string
-        """
-
-        scope = "nnrf-disc"
-        token = ""
-
-        if "servers" in api_spec:
-            url_split = api_spec["servers"][0]["url"].split("/")
-
-            if len(url_split) > 2:
-                scope = url_split[1]
-
-        nf_dest = scope.split("-")[0][1:].upper()  # just nrf for example
-
-        instance: NFInstance = NFInstance.add_random_nf(display=display)
-        token = instance.get_token(scope=scope, target_type=nf_dest)
-        if display:
-            print(f"Creating {nf} {instance.nf_instance_id} with scope {scope}...")
-
-        return token
-
     def fuzz(self, nf_list=["NRF", "UDM", "AMF"], nb_file=1, nb_url=1, nb_method=1, nb_ite=1, only_required=True, display=False) -> list[int]:
+        """
+        Fuzzes the CN APIs by generating and sending randomized requests to specified network functions (NFs).
+        Args:
+            nf_list (list[str], optional): List of NF types to target. Defaults to ["NRF", "UDM", "AMF"].
+            nb_file (int, optional): Number of API spec files to sample per NF. Defaults to 1.
+            nb_url (int, optional): Number of URLs to sample per API spec. Defaults to 1.
+            nb_method (int, optional): Number of HTTP methods to sample per URL. Defaults to 1.
+            nb_ite (int, optional): Number of iterations per request. Defaults to 1.
+            only_required (bool, optional): If True, only required parameters/bodies are used. Defaults to True.
+            display (bool, optional): If True, displays request details. Defaults to False.
+        Returns:
+            list[int]: List of HTTP response codes from the fuzzed requests.
+        """
 
         request_result_list = []
         for nf in nf_list:
             for file in self.sample_file(nf, nb_file):
                 api_spec = self.get_spec(file)
-                token = self.setup_fuzzer(api_spec, nf, display)
-
+                
+                ## This code is equivalent to the one bellow but don't work 
+                ## Yet it is the exact same code used the same way than in cn_mitm 
+                ## And in cn_mitm this exact same code works. I don't understand 
+                # instance: NFInstance = NFInstance.add_random_nf()
+                # token = instance.get_token(scope="nnrf-disc", target_type="NRF")
+                
+                # Get a token
+                nf_instance_id = generate_variables("uuid")
+                ip_address = random.choice(NFInstance.get_available_ip_list())
+                nf_type = NFInstance.get_random_nf_type()
+                instance: NFInstance = NFInstance.add_nf(nf_instance_id, nf_type, ip_address=ip_address)
+                token = instance.get_token(scope="nnrf-disc", target_type="NRF")
+                
                 if not token:
                     return [] # If we can't get a token we stop the fuzzing
 

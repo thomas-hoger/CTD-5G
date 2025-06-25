@@ -49,7 +49,7 @@ def ueransim_exec(command:str, read=True) -> str:
 
 # ------- Variables Generation
 
-def get_iface_from_ip(docker_name:str,ipv4:str) -> str | None:
+def get_docker_iface_from_ip(docker_name:str,ipv4:str) -> str | None:
     pattern = re.compile(
         r"^\d+: (\S+):.*?\n(?:    .*\n)*?\s+inet " + re.escape(ipv4),
         re.MULTILINE
@@ -60,16 +60,14 @@ def get_iface_from_ip(docker_name:str,ipv4:str) -> str | None:
     if match : 
         return match.group(1)
   
-def get_ip_from_iface(docker_name: str, iface: str) -> str | None:
-    pattern = re.compile(
-        rf"{iface}:.*?\n(?:\s+.*\n)*?\s+inet (\d+\.\d+\.\d+\.\d+)",
-        re.MULTILINE
-    )
+def get_my_ip_from_prefix(prefix: str) -> str | None:
 
-    ip_a = docker_exec(docker_name, "ip a")
-    match = pattern.search(ip_a)
+    ip_output = os.popen("ip a").read()
+    pattern = re.compile(rf"inet ({prefix}.\d+\.\d+\.\d+)")
+    match = pattern.search(ip_output)
     if match:
         return match.group(1)
+    return None
 
 def generate_variables(ptype:str):
     """

@@ -3,7 +3,7 @@ from __future__ import annotations
 from enum import Enum
 import re
 
-from src.utils.common import ueransim_exec, ue_list, get_iface_from_ip
+from src.utils.common import ueransim_exec, ue_list, get_docker_iface_from_ip
 
 class PDUState(Enum):
     ACTIVE = "PS-ACTIVE"
@@ -50,7 +50,7 @@ class PDUSession:
                 "imsi": imsi,
                 "state": PDUState(state),
                 "address": address,
-                "iface": get_iface_from_ip("ueransim",address) 
+                "iface": get_docker_iface_from_ip("ueransim",address) 
             })
         return sessions
 

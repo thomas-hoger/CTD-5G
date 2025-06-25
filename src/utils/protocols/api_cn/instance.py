@@ -85,7 +85,7 @@ class NFInstance:
         status, _ = NFInstance.request_cn(instance, {}, "GET", "", display=display)
         return 200 <= status < 300 
     
-    def get_available_ip_list() -> str:
+    def get_available_ip_list() -> list[str]:
         """
         Generates and returns an available IP address in the format '10.100.200.X', 
         where X is not currently assigned to any CN component or temporary NF instance.
@@ -97,11 +97,11 @@ class NFInstance:
         addresses_used_by_temporary_nf = [nf.ip_address for nf in NFInstance.nf_list]
         available_ips = [ip for ip in available_ips if ip not in addresses_used_by_temporary_nf] # Avoid IPs already used by temporary NFs
         
-        return random.choice(available_ips)  
+        return available_ips 
 
     def get_random_nf_type() -> str:
         nf_types   = [os.path.splitext(f)[0] for f in os.listdir(NF_PARAMETER_FOLDER) if ".json" in f]
-        return random.choice(nf_types)
+        return random.choice(nf_types).upper()
     
     # NRF REQUESTS 
 
@@ -121,11 +121,7 @@ class NFInstance:
 
         available_ip_list = NFInstance.get_available_ip_list()
         
-        if ip_address :
-            if ip_address not in available_ip_list:
-                print("IP already used")
-                return None
-        else :
+        if not ip_address :
             ip_address = random.choice(available_ip_list)
             
         # Required values
@@ -181,7 +177,7 @@ class NFInstance:
         
         with open(f"{NF_PARAMETER_FOLDER}/{nf_type.lower()}.json") as f:
             parameters = json.load(f)
-        
+
         return NFInstance.add_nf(nf_instance_id, nf_type.upper(), ip_address=ip_address, additionnal_data=parameters, display=display)
 
     def remove_nf(instance: NFInstance, token: str, display=True) -> bool:
