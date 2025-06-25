@@ -212,6 +212,7 @@ class CNFuzzing:
         nf_file_name = "N" + nf.lower()
         files = [f for f in os.listdir(self.api_source_folder) if nf_file_name in f]
         k = min(k, len(files))
+        random.shuffle(files)
         return random.sample(files, k)
 
     def get_spec(self, file: str):
@@ -229,6 +230,7 @@ class CNFuzzing:
         paths = api_spec["paths"]
         urls = list(paths.keys())
         k = min(k, len(urls))
+        random.shuffle(urls)
         return random.sample(urls, k)
 
     def sample_method(self, api_spec, url: str, k: int):
@@ -238,13 +240,14 @@ class CNFuzzing:
         paths = api_spec["paths"]
         methods = list(paths[url].keys())
         k = min(k, len(methods))
+        random.shuffle(methods)
         return random.sample(methods, k)
 
-    def fuzz(self, nf_list=["NRF", "UDM", "AMF"], nb_file=1, nb_url=1, nb_method=1, nb_ite=1, only_required=True, display=False) -> list[int]:
+    def fuzz(self, nf, nb_file=1, nb_url=1, nb_method=1, nb_ite=1, only_required=True, display=False) -> list[int]:
         """
         Fuzzes the CN APIs by generating and sending randomized requests to specified network functions (NFs).
         Args:
-            nf_list (list[str], optional): List of NF types to target. Defaults to ["NRF", "UDM", "AMF"].
+            nf (str): Name of the nf to fuzz
             nb_file (int, optional): Number of API spec files to sample per NF. Defaults to 1.
             nb_url (int, optional): Number of URLs to sample per API spec. Defaults to 1.
             nb_method (int, optional): Number of HTTP methods to sample per URL. Defaults to 1.
@@ -256,65 +259,64 @@ class CNFuzzing:
         """
 
         request_result_list = []
-        for nf in nf_list:
-            for file in self.sample_file(nf, nb_file):
-                api_spec = self.get_spec(file)
-                
-                ## This code is equivalent to the one bellow but don't work 
-                ## Yet it is the exact same code used the same way than in cn_mitm 
-                ## And in cn_mitm this exact same code works. I don't understand 
-                # instance: NFInstance = NFInstance.add_random_nf()
-                # token = instance.get_token(scope="nnrf-disc", target_type="NRF")
-                
-                # Get a token
-                nf_instance_id = generate_variables("uuid")
-                ip_address = random.choice(NFInstance.get_available_ip_list())
-                nf_type = NFInstance.get_random_nf_type()
-                instance: NFInstance = NFInstance.add_nf(nf_instance_id, nf_type, ip_address=ip_address)
-                token = instance.get_token(scope="nnrf-disc", target_type="NRF")
-                
-                if not token:
-                    return [] # If we can't get a token we stop the fuzzing
+        for file in self.sample_file(nf, nb_file):
+            api_spec = self.get_spec(file)
+            
+            ## This code is equivalent to the one bellow but don't work 
+            ## Yet it is the exact same code used the same way than in cn_mitm 
+            ## And in cn_mitm this exact same code works. I don't understand 
+            # instance: NFInstance = NFInstance.add_random_nf()
+            # token = instance.get_token(scope="nnrf-disc", target_type="NRF")
+            
+            # Get a token
+            nf_instance_id = generate_variables("uuid")
+            ip_address = random.choice(NFInstance.get_available_ip_list())
+            nf_type = NFInstance.get_random_nf_type()
+            instance: NFInstance = NFInstance.add_nf(nf_instance_id, nf_type, ip_address=ip_address)
+            token = instance.get_token(scope="nnrf-disc", target_type="NRF")
+            
+            if not token:
+                return [] # If we can't get a token we stop the fuzzing
 
-                for url in self.sample_url(api_spec, nb_url):
+            for url in self.sample_url(api_spec, nb_url):
 
-                    for method in self.sample_method(api_spec, url, nb_method):
+                for method in self.sample_method(api_spec, url, nb_method):
 
-                        header = {}
-                        body = {}
+                    header = {}
+                    body = {}
 
-                        new_url = url
+                    new_url = url
 
-                        if 'parameters' in api_spec["paths"][url][method]:
-                            try:
-                                parameters = api_spec["paths"][url][method]['parameters']
-                                new_url, header = self.extract_parameters(parameters, url, file, only_required)
-                            except Exception:
-                                pass
-
-                        if 'requestBody' in api_spec["paths"][url][method]:
-                            try:
-                                body = api_spec["paths"][url][method]['requestBody']['content']
-                                accept, body = self.extract_body(body, file, only_required)
-                            except Exception:
-                                pass
-
-                        # If its a file that use the '{apiRoot}/nnrf-nfm/v1' prefix we use it
+                    if 'parameters' in api_spec["paths"][url][method]:
                         try:
-                            pre_url = api_spec["servers"][0]["url"].replace("{apiRoot}", "")
-                            new_url = pre_url + new_url
+                            parameters = api_spec["paths"][url][method]['parameters']
+                            new_url, header = self.extract_parameters(parameters, url, file, only_required)
                         except Exception:
-                                pass
+                            pass
 
-                        # When receiving some NF check if the requester/sender NF is the same as the one in the token
-                        # So we force the value if it's present in the uri
-                        new_url = re.sub('target-nf-type=(.+?)(&|$)', f'target-nf-type={nf}&', new_url)
-                        new_url = re.sub('requester-nf-type=(.+?)(&|$)', 'requester-nf-type=AMF&', new_url)
+                    if 'requestBody' in api_spec["paths"][url][method]:
+                        try:
+                            body = api_spec["paths"][url][method]['requestBody']['content']
+                            accept, body = self.extract_body(body, file, only_required)
+                        except Exception:
+                            pass
 
-                        for _ in range(nb_ite):
-                            # print(f"{nf} {method} : {new_url} (header : {header}, body : {body})")
+                    # If its a file that use the '{apiRoot}/nnrf-nfm/v1' prefix we use it
+                    try:
+                        pre_url = api_spec["servers"][0]["url"].replace("{apiRoot}", "")
+                        new_url = pre_url + new_url
+                    except Exception:
+                            pass
 
-                            code, result = NFInstance.request_cn(nf, body, method, new_url, header, token=token, display=display)
-                            request_result_list.append(code)
+                    # When receiving some NF check if the requester/sender NF is the same as the one in the token
+                    # So we force the value if it's present in the uri
+                    new_url = re.sub('target-nf-type=(.+?)(&|$)', f'target-nf-type={nf}&', new_url)
+                    new_url = re.sub('requester-nf-type=(.+?)(&|$)', 'requester-nf-type=AMF&', new_url)
+
+                    for _ in range(nb_ite):
+                        # print(f"{nf} {method} : {new_url} (header : {header}, body : {body})")
+
+                        code, result = NFInstance.request_cn(nf, body, method, new_url, header, token=token, display=display)
+                        request_result_list.append(code)
 
         return request_result_list

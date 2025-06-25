@@ -59,5 +59,5 @@ def test_extract_parameters():
 
 def test_fuzz():
     fuzzer = CNFuzzing()
-    codes = fuzzer.fuzz(["NRF"],display=True)
+    codes = fuzzer.fuzz("NRF",display=True)
     assert len(codes) == 1

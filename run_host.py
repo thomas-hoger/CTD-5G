@@ -86,3 +86,11 @@ def main():
 
 
 main()
+
+
+# pour start les attack on fait 
+from run_evil import available_attacks
+
+def random_attack():
+    attack_name = random.choice(available_attacks)
+    docker_exec("evil", f"python run_host.py {attack_name}")

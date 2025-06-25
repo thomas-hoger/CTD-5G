@@ -1,4 +1,4 @@
-from src.pfcpToolkit.pfcp_toolkit import PFCPToolkit
+from src.utils.protocols.pfcp import PFCPToolkit
 import random, time, threading, ipaddress
 from scapy.all import send, sr1
 
@@ -12,14 +12,7 @@ from src.attacks.pfcp.pfcpFuzzer import PFCPFuzzer
 
 
 class PFCPHijack:
-    def __init__(
-        self,
-        verbose=False,
-        hijacker_addr=None,
-        upf_addr=None,
-        src_port=None,
-        dest_port=None,
-    ):
+    def __init__(self, verbose=False, hijacker_addr=None, upf_addr=None, src_port=None, dest_port=None,):
         self.hijacker_addr = hijacker_addr
         self.upf_addr = upf_addr
         self.src_port = src_port
@@ -30,21 +23,7 @@ class PFCPHijack:
         self.logger = Log(self.class_prefix)
         self.verbose = verbose
 
-    def set_verbose(self, verbose):
-        """
-        Set the verbosity level for logging.
-        """
-        self.verbose = verbose
-
-    def start_PFCP_hijack_far_manipulation(
-        self,
-        hijacker_addr,
-        upf_addr,
-        seid,
-        src_port=8805,
-        dest_port=8805,
-        verbose=True,
-    ):
+    def start_PFCP_hijack_far_manipulation( self, hijacker_addr, upf_addr, seid, src_port=8805, dest_port=8805, verbose=True,):
         """
         Start PFCP hijack far manipulation
         """
