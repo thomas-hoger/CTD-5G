@@ -5,6 +5,9 @@ import random
 from src.attacks.api_cn.cn_mitm import CNMitm
 from src.attacks.api_cn.cn_fuzzing import CNFuzzing
 from src.utils.protocols.api_cn.instance import NFInstance
+from src.marker.generation import AttackMarker, marker_base
+
+from scapy.all import send
 
 available_attacks = [
     "cn_mitm",
@@ -13,7 +16,21 @@ available_attacks = [
 
 def main():
 
-    attack_name = sys.argv[1]
+    attack_id = int(sys.argv[1])
+    attack_name = sys.argv[2]
+    
+    if not (attack_id and attack_name ):
+        return 
+    
+    # Send the first marker
+    marker_start = AttackMarker(
+        id = attack_id,
+        start = 1,
+        attack_type = attack_name
+    )
+    send(marker_base / marker_start)
+    
+    # Select the attack
     match attack_name:
         
         # Run MITM for ~60 seconds
@@ -33,6 +50,14 @@ def main():
         case _:
             print(f"Unknown attack: {attack_name}, available attacks : {", ".join(available_attacks)}")
             return
+        
+    # Send the second marker
+    marker_start = AttackMarker(
+        id = attack_id,
+        start = 0,
+        attack_type = attack_name
+    )
+    send(marker_base / marker_start)
 
 if __name__ == "__main__":
     main()

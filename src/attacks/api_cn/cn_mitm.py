@@ -50,7 +50,7 @@ class CNMitm:
                 return False
 
         # Informations for the new attacker NF
-        mitm_addr = get_my_ip_from_prefix("140.")
+        mitm_addr = get_my_ip_from_prefix()
         mitm_id   = generate_variables("uuid")
                 
         # Pick a random legitimate removed instance and mimic some of its services

@@ -60,10 +60,9 @@ def get_docker_iface_from_ip(docker_name:str,ipv4:str) -> str | None:
     if match : 
         return match.group(1)
   
-def get_my_ip_from_prefix(prefix: str) -> str | None:
-
+def get_my_ip_from_prefix(prefix: str = "10.100.200") -> str | None:
     ip_output = os.popen("ip a").read()
-    pattern = re.compile(rf"inet ({prefix}.\d+\.\d+\.\d+)")
+    pattern = re.compile(rf"inet ({prefix}.\d+)")
     match = pattern.search(ip_output)
     if match:
         return match.group(1)

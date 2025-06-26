@@ -7,7 +7,7 @@ class PFCPToolkit:
     
     seq = 1
 
-    def new_seq(randomize=False):
+    def new_seq(randomize=True):
 
         if randomize:
             seqNbr = random.randint(1, 0xFFFFFFFF)
@@ -39,15 +39,6 @@ class PFCPToolkit:
             ]
         )
 
-    def update_FAR(far_id:int, action:pfcp.IE_ApplyAction = pfcp.IE_ApplyAction(FORW=1)):
-        "Create a update FAR with a given action (default to FORWARD)"
-        return pfcp.IE_UpdateFAR(
-            IE_list=[
-                pfcp.IE_FAR_Id(id=far_id), 
-                action
-            ]
-        )
-
     # PFCP Message Building Functions
 
     def association_setup(src_addr:str, dst_addr:str) -> IP:
@@ -62,7 +53,7 @@ class PFCPToolkit:
             / pfcp.IE_RecoveryTimeStamp(timestamp=int(time.time()))
         )
 
-    def session_establishment(src_addr:str, dst_addr:str, ue_addr=None, seid=0x1, teid=0x11111111, precedence=255, interface=1, FAR_number=1) -> IP:
+    def session_establishment(src_addr:str, dst_addr:str, ue_addr=None, seid=0x1, teid=0x11111111, precedence=255, FAR_number=1) -> IP:
 
         seq = PFCPToolkit.new_seq()
 
@@ -72,7 +63,7 @@ class PFCPToolkit:
                 pfcp.IE_Precedence(precedence=precedence),
                 pfcp.IE_PDI(
                     IE_list=[
-                        pfcp.IE_SourceInterface(interface=interface),
+                        pfcp.IE_SourceInterface(interface=1),
                         pfcp.IE_FTEID(TEID=teid, V4=1, ipv4=ue_addr),
                     ]
                 ),
@@ -91,9 +82,11 @@ class PFCPToolkit:
         )
             
         pfcp_msg = (
+            # S=1 is flag indicating that there will be a flag in the header 
+            # The first seid is always supposed to be 0 and is expected to be different from the 2nd one 
             pfcp.PFCP(version=1, message_type=50, seid=0, S=1, seq=seq)
-            / pfcp.IE_NodeId(id_type=0, ipv4=src_addr)
-            / pfcp.IE_FSEID(seid=seid, v4=1, ipv4=src_addr)
+            / pfcp.IE_NodeId(id_type=0, ipv4=src_addr, length=5)
+            / pfcp.IE_FSEID(seid=seid, v4=1, ipv4=src_addr, length=13)
             / pdr
             / far
         )
@@ -106,6 +99,8 @@ class PFCPToolkit:
             / UDP(sport=8805, dport=8805)
             / pfcp_msg
         )
+    
+    
 
     def session_deletion(src_addr:str, dst_addr:str, seid=0x1) -> IP:
         
@@ -147,7 +142,7 @@ class PFCPToolkit:
             )
             
         # Forward
-        elif (action_flags["FORW"] == 1 and action_flags["DUPL"] == 0 and tdst_addr is not None):
+        if (action_flags["FORW"] == 1):
             IE_list.append(
                 pfcp.IE_OuterHeaderCreation(
                     GTPUUDPIPV4=1, TEID=teid, ipv4=tdst_addr, port=2152

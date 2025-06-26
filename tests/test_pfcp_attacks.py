@@ -7,7 +7,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 from src.attacks.pfcp.pfcpDosAttack import PFCPDosAttack
 from src.attacks.pfcp.pfcpFuzzer import PFCPFuzzer
 from src.attacks.pfcp.pfcpHijack import PFCPHijack
-from src.utils.protocols.pfcp import PFCPToolkit
+from src.utils.protocols.pfcp.pfcp_old import PFCPToolkit
 from src import ip_list
 import random
 
