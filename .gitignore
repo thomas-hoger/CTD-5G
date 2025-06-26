@@ -1,5 +1,6 @@
 .pytest_cache
-*/__pycache__
+__pycache__/
+*.pyc
 local
 test.ipynb
 test_thomas
