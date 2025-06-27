@@ -44,6 +44,10 @@ def test_interact():
     # Find a UDM instance
     infos = instance.get_nf_info(token, "UDM", display=False)
     assert infos
+    
+    # Find every type of NF 
+    infos = instance.get_nf_info(token, "", display=False)
+    assert infos
 
     # Remove instance
     removed = instance.remove_nf(token, display=False)

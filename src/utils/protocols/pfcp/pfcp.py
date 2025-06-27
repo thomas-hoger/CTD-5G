@@ -6,6 +6,12 @@ import random
 import time
 
 class PFCPRequest:
+    
+    max_teid = 0xffffffff
+    max_seid = 0xffffffffffffffff
+    
+    def random_ue_address():
+        return f"10.60.{random.randint(1,254)}.{random.randint(1,254)}"
 
     def association_setup(src_addr:str, dst_addr:str, seq:int=random.randint(1, 0xFFFFFFFF)) -> Packet:
 

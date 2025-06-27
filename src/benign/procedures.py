@@ -10,12 +10,10 @@ class BenignProcedure:
     # UE REGISTRATION AND DEREGISTRATION
     
     def register_random_ue() -> bool:
-        print("---------- REGISTER RANDOM UE ----------")
         imsi = UserEquipment.get_available_imsi()
         return UserEquipment.register_new(imsi) is not None
 
     def deregister_random_ue() -> bool:
-        print("---------- DEREGISTER RANDOM UE ----------")
         registered_ues = UserEquipment.get_registered()
         ue: UserEquipment = random.choice(registered_ues)
         return ue.deregister()
@@ -23,19 +21,16 @@ class BenignProcedure:
     # UE STATE MANAGEMENT
 
     def set_random_ue_idle() -> bool:
-        print("---------- IDLE RANDOM UE ----------")
         active_ues = UserEquipment.get_connected_ues()
         ue: UserEquipment = random.choice(active_ues)
         return ue.context_release()
 
     def uplink_wake_random_ue() -> bool:
-        print("---------- WAKE RANDOM UE (uplink) ----------")
         idle_ues = UserEquipment.get_idle_ues()
         ue: UserEquipment = random.choice(idle_ues)
         return ue.uplink_wake()
 
     def downlink_wake_random_ue() -> bool:
-        print("---------- WAKE RANDOM UE (downlink/paging) ----------")
         idle_ues = UserEquipment.get_idle_ues()
         ue: UserEquipment = random.choice(idle_ues)
         return ue.downlink_wake()
@@ -43,7 +38,6 @@ class BenignProcedure:
     # PDU SESSION MANAGEMENT
 
     def restart():
-        print("---------- START PDU SESSION ----------")
         sessions = PDUSession.get_sessions()
         session: PDUSession = random.choice(sessions)
         session.restart()
@@ -51,7 +45,6 @@ class BenignProcedure:
     # USER TRAFFIC 
 
     def user_traffic() -> bool:
-        print("---------- USER TRAFFIC ----------")
         active_ues = UserEquipment.get_connected_ues()
         ue: UserEquipment = random.choice(active_ues)
         dn_domain = random.choice(dn_domains)
@@ -62,7 +55,6 @@ class BenignProcedure:
     # NF MANAGEMENT
 
     def add_random_nf() -> bool:
-        print("---------- ADD RANDOM NF ----------")
         instance = NFInstance.add_random_nf()
         
         if instance:
@@ -73,7 +65,6 @@ class BenignProcedure:
         return False
 
     def remove_random_nf() -> bool:
-        print("---------- REMOVE RANDOM NF ----------")
         instance: NFInstance = random.choice(NFInstance.nf_list)
 
         # Get a token for this NF

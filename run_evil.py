@@ -1,27 +1,17 @@
 import sys
-import time 
-import random
 
-from src.attacks.api_cn.cn_mitm import CNMitm
-from src.attacks.api_cn.cn_fuzzing import CNFuzzing
-from src.utils.protocols.api_cn.instance import NFInstance
+from src.attacks.procedures import Attacks
 from src.marker.generation import AttackMarker, marker_base
 
 from scapy.all import send
 
-available_attacks = [
-    "cn_mitm",
-    "fuzz"
-]
+attack_id = int(sys.argv[1])
+attack_name = sys.argv[2]
 
-def main():
+available_attacks = [name for name in dir(Attacks) if callable(getattr(Attacks, name)) and not name.startswith("_")]
 
-    attack_id = int(sys.argv[1])
-    attack_name = sys.argv[2]
-    
-    if not (attack_id and attack_name ):
-        return 
-    
+if attack_id and attack_name and attack_name in available_attacks :
+
     # Send the first marker
     marker_start = AttackMarker(
         id = attack_id,
@@ -30,27 +20,10 @@ def main():
     )
     send(marker_base / marker_start)
     
-    # Select the attack
-    match attack_name:
-        
-        # Run MITM for ~60 seconds
-        case "cn_mitm":
-            nf_type = NFInstance.get_random_nf_type()
-            CNMitm.start(nf_type)
-            time_to_sleep = int(random.normalvariate(120, 10))
-            time.sleep(time_to_sleep)
-            CNMitm.start(nf_type)
-            
-        # Fuzz a random NF for 100 packet (10 iterations of 10 different urls)
-        case "fuzz":
-            nf_list = ["NRF", "UDM", "AMF"]
-            nf = random.choice(nf_list)
-            CNFuzzing().fuzz(nf, nb_file=1, nb_url=10, nb_ite=10, nb_method=1)
+    # Run the attack
+    attack = getattr(Attacks, attack_name)
+    attack()
 
-        case _:
-            print(f"Unknown attack: {attack_name}, available attacks : {", ".join(available_attacks)}")
-            return
-        
     # Send the second marker
     marker_start = AttackMarker(
         id = attack_id,
@@ -58,6 +31,3 @@ def main():
         attack_type = attack_name
     )
     send(marker_base / marker_start)
-
-if __name__ == "__main__":
-    main()

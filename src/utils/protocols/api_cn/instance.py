@@ -12,6 +12,18 @@ NF_PARAMETER_FOLDER = "./src/utils/protocols/api_cn/new_nf_parameters/free5gc"
 
 class NFInstance:
     
+    nf_type_list = [
+        "UDM",
+        "AMF",
+        "SMF",
+        "AUSF",
+        "PCF",
+        "UDR",
+        "NSSF",
+        "CHF",
+        "NEF",
+    ]
+    
     nf_list = []
     
     def __init__(self, nf_instance_id:str , nf_type:str , ip_address:str , services: list[str]):

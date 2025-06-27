@@ -7,7 +7,7 @@ import os
 
 from enum import Enum
 
-from src.utils.common import docker_exec, ueransim_exec, ue_list, UE_CONFIG_PATH
+from src.utils.common import docker_exec, ueransim_exec, ue_list, dn_domains, UE_CONFIG_PATH
 from src.utils.ueransim.gnb import gNodeB
 from src.utils.ueransim.session import PDUSession
 
@@ -290,7 +290,7 @@ class UserEquipment:
             return transmitted == packet_quantity
         return False
 
-    def uplink_wake(ue: UserEquipment, session_id:int, packet_quantity:int, dn_domain:str) -> bool:
+    def uplink_wake(ue: UserEquipment) -> bool:
         """
         Attempts to wake up a User Equipment (UE) from IDLE state by sending uplink traffic to a specified domain.
         If the UE transitions to CM-CONNECTED state, updates its state to CONNECTED.
@@ -305,7 +305,9 @@ class UserEquipment:
         if ue.state == UEState.IDLE:
             
             # Send uplink packets, if it fails, return False
-            sent = ue.uplink_traffic(session_id, packet_quantity, dn_domain)  # Send ICMP packets to wake up the UE
+            dn_domain  = random.choice(dn_domains)
+            session_id = random.choice(ue.sessions).id
+            sent = ue.uplink_traffic(session_id, 1, dn_domain)  # Send ICMP packets to wake up the UE
             if sent:
             
                 # Check if the UE is now connected
@@ -315,13 +317,12 @@ class UserEquipment:
         
         return False
 
-    def downlink_wake(ue: UserEquipment, session_id:int, packet_quantity:int) -> bool:
+    def downlink_wake(ue: UserEquipment) -> bool:
         """
         Attempts to wake up a user equipment (UE) from IDLE state by sending downlink packets.
         Returns True if the UE transitions to CONNECTED state, otherwise False.
         Args:
             ue (UserEquipment): The user equipment instance to wake.
-            packet_quantity (int): Number of packets to send.
         Returns:
             bool: True if UE is successfully woken up, False otherwise.
         """
@@ -329,7 +330,8 @@ class UserEquipment:
         if ue.state == UEState.IDLE:
             
             # Send downlink packets, if it fails, return False
-            sent = ue.downlink_traffic(session_id, packet_quantity)
+            session_id = random.choice(ue.sessions).id
+            sent = ue.downlink_traffic(session_id, 1)
             if sent:
         
                 # Check if the UE is now connected

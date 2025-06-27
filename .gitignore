@@ -2,6 +2,6 @@
 __pycache__/
 *.pyc
 local
-test.ipynb
+*.ipynb
 test_thomas
 test.py
