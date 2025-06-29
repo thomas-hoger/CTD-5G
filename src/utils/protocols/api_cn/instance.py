@@ -240,8 +240,11 @@ class NFInstance:
         uri = "/nnrf-disc/v1/nf-instances"
         data = {
             "requester-nf-type" : instance.nf_type,
-            "target-nf-type" : target_nf_type
         }
+        if target_nf_type : 
+            data["target-nf-type"] = target_nf_type
+
+        
         data = {**data, **additionnal_data}
         status, response = NFInstance.request_cn("NRF", data, "GET", uri, token=token, display=display)
         if 200 <= status < 300  : 

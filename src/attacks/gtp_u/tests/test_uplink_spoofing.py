@@ -31,7 +31,7 @@ def test_spoofing():
         src_addr = get_my_ip_from_prefix(), 
         dst_addr = ip_list["UPF"],
         tunnel_dst_addr = "8.8.8.8", # random address from internet
-        ue_addr = session.ip,
+        ue_addr = session.address,
         teid = session.teid
     )
     send(packet)

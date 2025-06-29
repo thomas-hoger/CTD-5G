@@ -13,5 +13,5 @@ class gNodeB:
 
     def get_registered_ues_in_gnb(gnb:str) -> list[dict]:
         "Return a list of dictionaries containing ue-id, ran-ngap-id and amf-ngap-id for each UE connected to the specified gNB."
-        ue_list = ueransim_exec(f"./nr-cli {gnb} -e 'ue-list'")
-        return yaml.safe_load(ue_list) or []
+        ue_in_gnb_list = ueransim_exec(f"./nr-cli {gnb} -e 'ue-list'")
+        return yaml.safe_load(ue_in_gnb_list) or []

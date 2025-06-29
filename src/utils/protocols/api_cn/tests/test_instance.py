@@ -25,31 +25,27 @@ def test_interact():
     assert NFInstance.ping_nf("NRF", display=False)
     
     # Check parameter import
-    nf_type    = NFInstance.get_random_nf_type()
+    nf_type = NFInstance.get_random_nf_type()
     assert nf_type
     
-    with open(f"{NF_PARAMETER_FOLDER}/{nf_type}.json") as f:
+    with open(f"{NF_PARAMETER_FOLDER}/{nf_type.lower()}.json") as f:
         parameters = json.load(f)
     assert len(parameters.keys()) > 0
 
     # Add instance
-    instance:NFInstance|None = NFInstance.add_random_nf(display=False)
+    instance:NFInstance|None = NFInstance.add_random_nf(nf_type="UDM",display=False)
     NFInstance.nf_list.append(instance) 
     assert instance
 
     # Create token
-    token = instance.get_token("nnrf-disc", "NRF", display=False)
+    token = instance.get_token("nnrf-disc", "NRF")
     assert token
 
     # Find a UDM instance
-    infos = instance.get_nf_info(token, "UDM", display=False)
-    assert infos
-    
-    # Find every type of NF 
-    infos = instance.get_nf_info(token, "", display=False)
-    assert infos
+    infos = instance.get_nf_info(token, "UDM")
+    assert len(infos["nfInstances"]) > 0
 
     # Remove instance
-    removed = instance.remove_nf(token, display=False)
+    removed = instance.remove_nf(token)
     NFInstance.nf_list.remove(instance) 
     assert removed

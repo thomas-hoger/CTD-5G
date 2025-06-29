@@ -49,8 +49,8 @@ class BenignProcedure:
         ue: UserEquipment = random.choice(active_ues)
         dn_domain = random.choice(dn_domains)
         pkts_nbr = random.randint(1, 10)
-        session_id = random.randint(0, len(ue.sessions)-1) 
-        return ue.uplink_traffic(session_id, dn_domain, pkts_nbr) 
+        session = random.choice(ue.sessions)
+        return session.uplink_traffic(pkts_nbr, dn_domain) 
 
     # NF MANAGEMENT
 

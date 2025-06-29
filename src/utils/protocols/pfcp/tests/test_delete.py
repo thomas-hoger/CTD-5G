@@ -27,18 +27,16 @@ def test_delete():
     session = test_ue.sessions[0]
    
     # New UE should be able to ping
-    assert test_ue.uplink_traffic(session_id=0,packet_quantity=1, dn_domain="google.com")
+    assert session.uplink_traffic()
 
     # Send session deletion packet
     packet = PFCPRequest.session_deletion(
         src_addr = get_my_ip_from_prefix(),
         dst_addr = ip_list["UPF"],
-        ue_addr = session.address,
         seid = session.seid,
     )
     send(packet)
-    
+        
     # New UE should not be able to ping
-    assert not test_ue.uplink_traffic(session_id=0,packet_quantity=1, dn_domain="google.com")
+    assert not session.uplink_traffic()
     test_ue.deregister()
-    

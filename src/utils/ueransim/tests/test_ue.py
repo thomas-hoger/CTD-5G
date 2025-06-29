@@ -68,7 +68,7 @@ def test_state():
     assert len(UserEquipment.get_idle_ues()) == 1 
 
     # ----- Uplink wakeup
-    assert test_ue.uplink_wake(session_id=0, packet_quantity=1, dn_domain="google.com") # Uplink packets to wake up the UE
+    assert test_ue.uplink_wake() # Uplink packets to wake up the UE
     assert len(UserEquipment.get_idle_ues()) == 0 
     
     # ----- Change the state to IDLE again
@@ -76,7 +76,7 @@ def test_state():
     assert len(UserEquipment.get_idle_ues()) == 1 
     
     # ----- Downlink wakeup
-    assert test_ue.downlink_wake(session_id=0, packet_quantity=1) # Downlink packets to wake up the UE
+    assert test_ue.downlink_wake() # Downlink packets to wake up the UE
     assert len(UserEquipment.get_idle_ues()) == 0 
 
     # ----- Restore initial state

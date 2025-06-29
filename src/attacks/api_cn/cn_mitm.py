@@ -56,8 +56,12 @@ class CNMitm:
         # Pick a random legitimate removed instance and mimic some of its services
         # Its just to make the mitm instance more realistic
         random_instance: NFInstance = random.choice(removed_instances)
-        nb_of_service = random.randint(1, len(random_instance.services))  
-        mitm_services = random.sample(random_instance.services, nb_of_service) # get N services from a random instance
+        if len(random_instance.services) > 0 : 
+            nb_of_service = random.randint(0, len(random_instance.services))  
+            mitm_services = random.sample(random_instance.services, nb_of_service) # get N services from a random instance
+        else:
+            mitm_services = []
+       
         CNMitm.spoofed_instance = random_instance
         
         # Add the attacker as a NF of the right type

@@ -38,7 +38,7 @@ def test_pfcp_in_gtp():
         src_addr = get_my_ip_from_prefix(), 
         dst_addr = ip_list["UPF"],
         teid = session.teid,
-        packet = pfcp_packet
+        pfcp_packet = pfcp_packet
     )
     send(packet)
     

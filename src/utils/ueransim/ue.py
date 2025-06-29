@@ -7,7 +7,7 @@ import os
 
 from enum import Enum
 
-from src.utils.common import docker_exec, ueransim_exec, ue_list, dn_domains, UE_CONFIG_PATH
+from src.utils.common import docker_exec, ueransim_exec, ue_list, UE_CONFIG_PATH
 from src.utils.ueransim.gnb import gNodeB
 from src.utils.ueransim.session import PDUSession
 
@@ -17,7 +17,7 @@ class UEState(Enum):
         
 class UserEquipment:
     ue_id_counter = 1  # class variable
-    timeout = 30
+    timeout = 45
 
     def __init__(self, id:int, ran_id: int, amf_id:int, imsi: str, sessions:list[PDUSession], state=UEState.CONNECTED):
         self.id = id
@@ -26,9 +26,6 @@ class UserEquipment:
         self.imsi = imsi
         self.state = state
         self.sessions = sessions
-        
-        self.teid_downlink = 2 * self.id - 1
-        self.teid_uplink = 2 * self.teid_downlink   
 
         UserEquipment.ue_id_counter += 1
         
@@ -83,11 +80,11 @@ class UserEquipment:
                         
             sessions = [
                 PDUSession(
-                    session_id = session["session_id"],
-                    imsi       = imsi,
-                    address    = session["address"],
-                    iface      = session["iface"],
-                    state      = session["state"]
+                    ps_id    = session["ps_id"],
+                    imsi     = imsi,
+                    address  = session["address"],
+                    iface    = session["iface"],
+                    state    = session["state"]
                 )
                 for session in PDUSession.get_ue_sessions(imsi)
             ]
@@ -100,6 +97,8 @@ class UserEquipment:
                 sessions = sessions,
                 state = UEState.CONNECTED
             )
+            
+            global ue_list
             ue_list.append(ue)  # Add the new UE to the global list
             return ue
             
@@ -174,6 +173,7 @@ class UserEquipment:
             
         is_deregistered = ue.wait_ue_deregistration()
         if is_deregistered:
+            global ue_list
             ue_list.remove(ue)  # Remove the UE from the global list
             return True
         
@@ -181,6 +181,9 @@ class UserEquipment:
             return False
 
     def terminate_all() -> None:
+        global ue_list
+        ue_list.clear()
+        
         ue_process = os.popen("ps aux | grep './nr-ue -c' | grep -v grep | awk '{print $2}'").read()
         for pid in ue_process.split("\n"):
             if pid.isdigit():
@@ -247,49 +250,6 @@ class UserEquipment:
         
         return False
 
-    def uplink_traffic(ue: UserEquipment, session_id:int, packet_quantity:int, dn_domain:str) -> bool:
-        """
-        Sends a specified number of ping packets from a UE session to a given DN domain and checks if all packets are successfully transmitted and received.
-
-        Args:
-            ue (UserEquipment): The user equipment instance.
-            session_id (int): The session identifier.
-            packet_quantity (int): Number of packets to send.
-            dn_domain (str): Destination domain name.
-
-        Returns:
-            bool: True if all packets are transmitted and received, False otherwise.
-        """
-        
-        res = ueransim_exec(f"ping {dn_domain} -I {ue.sessions[session_id].iface} -c {packet_quantity}")
-        match = re.search(r"(\d+)\s+packets transmitted,\s+(\d+)\s+received", res)
-        if match:
-            transmitted = int(match.group(1))
-            # received = int(match.group(2))
-            return transmitted == packet_quantity
-        return False
-
-    def downlink_traffic(ue: UserEquipment, session_id:int, packet_quantity:int) -> bool:
-        """
-        Sends a specified number of ping packets to a User Equipment (UE) session and checks if all packets are successfully transmitted and received.
-
-        Args:
-            ue (UserEquipment): The user equipment instance.
-            session_id (int): The session identifier.
-            packet_quantity (int): Number of packets to send.
-
-        Returns:
-            bool: True if all packets are transmitted and received, False otherwise.
-        """
-        
-        res = docker_exec("upf", f"ping {ue.sessions[session_id].address} -I upfgtp -c {packet_quantity}")
-        match = re.search(r"(\d+)\s+packets transmitted,\s+(\d+)\s+received", res)
-        if match:
-            transmitted = int(match.group(1))
-            # received = int(match.group(2))
-            return transmitted == packet_quantity
-        return False
-
     def uplink_wake(ue: UserEquipment) -> bool:
         """
         Attempts to wake up a User Equipment (UE) from IDLE state by sending uplink traffic to a specified domain.
@@ -305,9 +265,8 @@ class UserEquipment:
         if ue.state == UEState.IDLE:
             
             # Send uplink packets, if it fails, return False
-            dn_domain  = random.choice(dn_domains)
-            session_id = random.choice(ue.sessions).id
-            sent = ue.uplink_traffic(session_id, 1, dn_domain)  # Send ICMP packets to wake up the UE
+            session = random.choice(ue.sessions)
+            sent = session.uplink_traffic()  # Send ICMP packets to wake up the UE
             if sent:
             
                 # Check if the UE is now connected
@@ -330,8 +289,8 @@ class UserEquipment:
         if ue.state == UEState.IDLE:
             
             # Send downlink packets, if it fails, return False
-            session_id = random.choice(ue.sessions).id
-            sent = ue.downlink_traffic(session_id, 1)
+            session = random.choice(ue.sessions)
+            sent = session.downlink_traffic()
             if sent:
         
                 # Check if the UE is now connected
