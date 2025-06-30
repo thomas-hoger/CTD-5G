@@ -5,7 +5,6 @@ from src.utils.ueransim.ue import docker_exec
 import random
 from enum import Enum
 from datetime import datetime, timedelta
-import time
 import argparse
 
 
@@ -39,20 +38,21 @@ traffic_type = TrafficType(args.traffic_type)
         
 # Run attacks or benign
 end_time = datetime.now() + timedelta(minutes=duration)
+count = 1
 while datetime.now() < end_time:
     
     # Benign
     if traffic_type == TrafficType.BENIGN:
         procedure = random_benign()
         procedure_name = procedure.__name__
-        print(f"{'='*30}\n[Benign Traffic] Running procedure: {procedure_name}")
+        print(f"{'='*30}\n[Benign Traffic] Running procedure {count}: {procedure_name}")
         result = procedure()
         
     # Attacks
     else : 
         procedure_name = random_attack()
-        print(f"{'='*30}\n[Attack Traffic] Running procedure: {procedure_name}")
-        execution = docker_exec("evil", f"python evil.py {procedure_name}")
+        print(f"{'='*30}\n[Attack Traffic] Running procedure {count}: {procedure_name}")
+        execution = docker_exec("evil", f"python evil.py {count} {procedure_name}")
         print(execution)
         result = True if execution else False
         
@@ -62,3 +62,4 @@ while datetime.now() < end_time:
         
     # sleep 2 (+/- 1) seconds between each iteration
     time_to_sleep = int(random.normalvariate(2, 1))
+    count += 1

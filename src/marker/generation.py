@@ -16,4 +16,4 @@ class AttackMarker(Packet):
 bind_layers(UDP, AttackMarker, sport=9999)
     
 # Need to put an IP that exists, else it would do a broadcast
-marker_base = IP(dst=ip_list["EVIL"]) / UDP(sport=9999, dport=9999)
+marker_base = IP(dst=ip_list["AMF"]) / UDP(sport=9999, dport=9999)

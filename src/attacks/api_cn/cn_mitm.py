@@ -85,6 +85,8 @@ class CNMitm:
             bool: True if the attack was successfully started, False otherwise.
         """
         
+        os.popen("pkill -f socat")
+        
         # Get a token
         CNMitm.attacker_instance = NFInstance.add_random_nf()
         CNMitm.attacker_token = CNMitm.attacker_instance.get_token(scope="nnrf-disc", target_type="NRF")
