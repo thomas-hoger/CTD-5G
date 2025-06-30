@@ -7,14 +7,15 @@ import time
 
 class PFCPRequest:
     
-    max_teid = 0xffffffff
-    max_seid = 0xffffffffffffffff
+    # if the value is too high it can cause -> panic: runtime error: index out of range
+    max_teid = 0xffff
+    max_seid = 0xffff
     
     def random_ue_address():
         return f"10.60.{random.randint(1,254)}.{random.randint(1,254)}"
     
     def random_seq():
-        random.randint(1, 0xFFFFFF)
+        random.randint(1, 0xffff)
 
     def association_setup(src_addr:str, dst_addr:str, seq:int=random_seq()) -> Packet:
 
