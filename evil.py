@@ -15,7 +15,7 @@ available_attacks = [name for name in dir(Attacks) if callable(getattr(Attacks, 
 
 if attack_id and attack_name and attack_name in available_attacks :
     
-    arping(ip_list["UPF"], eth="br-free5gc")
+    arping(ip_list["UPF"], iface="br-free5gc")
 
     # Send the first marker
     marker_start = AttackMarker(
