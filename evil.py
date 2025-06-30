@@ -23,7 +23,7 @@ if attack_id and attack_name and attack_name in available_attacks :
     
     # Run the attack
     attack = getattr(Attacks, attack_name)
-    success =attack()
+    success = attack()
 
     # Send the second marker
     marker_start = AttackMarker(
@@ -32,7 +32,6 @@ if attack_id and attack_name and attack_name in available_attacks :
         attack_type = attack_name
     )
     send(marker_base / marker_start)
-    
     
     status    = "✅" if success else "❌"
     line      = f"[{datetime.now()}] Attack: {attack_name} {status}\n"

@@ -17,7 +17,7 @@ class UEState(Enum):
         
 class UserEquipment:
     ue_id_counter = 1  # class variable
-    timeout = 45
+    timeout = 30
 
     def __init__(self, id:int, ran_id: int, amf_id:int, imsi: str, sessions:list[PDUSession], state=UEState.CONNECTED):
         self.id = id

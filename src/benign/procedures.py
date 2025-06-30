@@ -5,17 +5,18 @@ from src.utils.common import dn_domains, MAX_TEMPORARY_NF, ue_list
 import time
 import random
 
-class BenignProcedure:
+class Benigns:
     
     # UE REGISTRATION AND DEREGISTRATION
     
     def register_random_ue() -> bool:
         imsi = UserEquipment.get_available_imsi()
+        print(f"Registering {imsi}")
         return UserEquipment.register_new(imsi) is not None
 
     def deregister_random_ue() -> bool:
-        registered_ues = UserEquipment.get_registered()
-        ue: UserEquipment = random.choice(registered_ues)
+        ue: UserEquipment = random.choice(ue_list)
+        print(f"Deregistering {ue.imsi}")
         return ue.deregister()
 
     # UE STATE MANAGEMENT
@@ -23,24 +24,28 @@ class BenignProcedure:
     def set_random_ue_idle() -> bool:
         active_ues = UserEquipment.get_connected_ues()
         ue: UserEquipment = random.choice(active_ues)
+        print(f"Setting UE {ue.imsi} to idle")
         return ue.context_release()
 
     def uplink_wake_random_ue() -> bool:
         idle_ues = UserEquipment.get_idle_ues()
         ue: UserEquipment = random.choice(idle_ues)
+        print(f"Waking UE {ue.imsi} with uplink")
         return ue.uplink_wake()
 
     def downlink_wake_random_ue() -> bool:
         idle_ues = UserEquipment.get_idle_ues()
         ue: UserEquipment = random.choice(idle_ues)
+        print(f"Waking UE {ue.imsi} with downlink")
         return ue.downlink_wake()
 
     # PDU SESSION MANAGEMENT
 
-    def restart():
+    def restart() -> bool:
         sessions = PDUSession.get_sessions()
         session: PDUSession = random.choice(sessions)
-        session.restart()
+        print(f"Restarting PDU session of UE {session.address}")
+        return session.restart()
 
     # USER TRAFFIC 
 
@@ -48,16 +53,19 @@ class BenignProcedure:
         active_ues = UserEquipment.get_connected_ues()
         ue: UserEquipment = random.choice(active_ues)
         dn_domain = random.choice(dn_domains)
-        pkts_nbr = random.randint(1, 10)
+        pkts_nbr = random.randint(10, 30)
         session = random.choice(ue.sessions)
+        print(f"Sending {pkts_nbr} uplink packets from UE {ue.imsi} to {dn_domain} via session {session.address}")
         return session.uplink_traffic(pkts_nbr, dn_domain) 
 
     # NF MANAGEMENT
 
     def add_random_nf() -> bool:
-        instance = NFInstance.add_random_nf()
+        instance:NFInstance = NFInstance.add_random_nf()
+        print("Adding random NF")
         
         if instance:
+            print(f"{instance.nf_type} {instance.nf_instance_id} added")
             NFInstance.nf_list.append(instance)
             time.sleep(1) # Wait for the NF to be added
             return True
@@ -66,58 +74,52 @@ class BenignProcedure:
 
     def remove_random_nf() -> bool:
         instance: NFInstance = random.choice(NFInstance.nf_list)
+        print(f"Removing {instance.nf_type} instance {instance.nf_instance_id}")
 
         # Get a token for this NF
         scope = "nnrf-nfm"
         target_type = "NRF"
-        token = instance.get_token(scope, target_type, display=False)
+        token = instance.get_token(scope, target_type)
         
         if token :
-            status, _ = instance.remove_nf(token, display=False)
+            success = instance.remove_nf(token)
             
-            if status == 200 or status == 204:
+            if success:
                 NFInstance.nf_list.remove(instance)
                 time.sleep(1)  # Wait for the NF to be removed
                 return True
             
         return False
         
-    # PICK RANDOM PROCEDURE
+# PICK RANDOM PROCEDURE
 
-    def random_benign() -> bool:
-       
-        possible_procedures = []
+def random_benign() -> str:
+    
+    possible_procedures = []
+    
+    if len(UserEquipment.get_available_imsi()) > 0:
+        possible_procedures.append(Benigns.register_random_ue)
         
-        if len(UserEquipment.get_available_imsi()) > 0:
-            possible_procedures.append(BenignProcedure.register_random_ue)
-            
-        if len(ue_list) > 0:
-            possible_procedures.append(BenignProcedure.deregister_random_ue)
-            
-        if len(UserEquipment.get_connected_ues()) > 0:
-            possible_procedures.append(BenignProcedure.set_random_ue_idle)
-            possible_procedures.append(BenignProcedure.user_traffic)
-            
-        if len(UserEquipment.get_idle_ues()) > 0:
-            possible_procedures.append(BenignProcedure.uplink_wake_random_ue)
-            possible_procedures.append(BenignProcedure.downlink_wake_random_ue)
-            
-        if len(PDUSession.get_sessions()) > 0:
-            possible_procedures.append(BenignProcedure.restart)
-            
-        if len(NFInstance.nf_list) < MAX_TEMPORARY_NF:  # Limit the number of NFs to 5
-            possible_procedures.append(BenignProcedure.add_random_nf)
-            
-        if len(NFInstance.nf_list) > 0:
-            possible_procedures.append(BenignProcedure.remove_random_nf)
-            
-        procedure = random.choice(possible_procedures)
-        result: bool = procedure()
+    if len(ue_list) > 0:
+        possible_procedures.append(Benigns.deregister_random_ue)
         
-        if result :
-            print(f"Successfully executed benign {procedure.__name__}")
-        else:
-            print(f"Failed to execute benign {procedure.__name__}")
-            
-        return result
+    if len(UserEquipment.get_connected_ues()) > 0:
+        possible_procedures.append(Benigns.set_random_ue_idle)
+        possible_procedures.append(Benigns.user_traffic)
+        
+    if len(UserEquipment.get_idle_ues()) > 0:
+        possible_procedures.append(Benigns.uplink_wake_random_ue)
+        possible_procedures.append(Benigns.downlink_wake_random_ue)
+        
+    if len(PDUSession.get_sessions()) > 0:
+        possible_procedures.append(Benigns.restart)
+        
+    if len(NFInstance.nf_list) < MAX_TEMPORARY_NF:  # Limit the number of NFs to 5
+        possible_procedures.append(Benigns.add_random_nf)
+        
+    if len(NFInstance.nf_list) > 0:
+        possible_procedures.append(Benigns.remove_random_nf)
+        
+    procedure = random.choice(possible_procedures)
+    return procedure
 
