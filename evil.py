@@ -33,9 +33,3 @@ if attack_id and attack_name and attack_name in available_attacks :
     )
     send(marker_base / marker_start)
     
-    status    = "✅" if success else "❌"
-    line      = f"[{datetime.now()}] Attack: {attack_name} {status}\n"
-
-    file_path = "./output/attacks.log"
-    with open(file_path, "a", encoding="utf-8") as f:
-        f.write(line)
