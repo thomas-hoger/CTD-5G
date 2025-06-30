@@ -272,8 +272,8 @@ class CNFuzzing:
             nf_instance_id = generate_variables("uuid")
             ip_address = random.choice(NFInstance.get_available_ip_list())
             nf_type = NFInstance.get_random_nf_type()
-            instance: NFInstance = NFInstance.add_nf(nf_instance_id, nf_type, ip_address=ip_address)
-            token = instance.get_token(scope="nnrf-disc", target_type="NRF")
+            instance: NFInstance = NFInstance.add_nf(nf_instance_id, nf_type, ip_address=ip_address, display=display)
+            token = instance.get_token(scope="nnrf-disc", target_type="NRF", display=display)
             
             if not token:
                 return [] # If we can't get a token we stop the fuzzing

