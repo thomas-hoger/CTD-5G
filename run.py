@@ -1,12 +1,14 @@
 from src.benign.procedures import random_benign
 from src.attacks.procedures import random_attack
 from src.utils.ueransim.ue import docker_exec
+from src.marker.generation import Marker, marker_base
 
 import random
 from enum import Enum
 from datetime import datetime, timedelta
 import argparse
 
+from scapy.all import send
 
 class TrafficType(Enum):
     BENIGN = "benign"
@@ -35,6 +37,7 @@ def parse_args():
 args = parse_args()
 duration = args.duration
 traffic_type = TrafficType(args.traffic_type)
+is_attack = int(traffic_type == TrafficType.ATTACK)
         
 # Run attacks or benign
 end_time = datetime.now() + timedelta(minutes=duration)
@@ -45,16 +48,44 @@ while datetime.now() < end_time:
     if traffic_type == TrafficType.BENIGN:
         procedure = random_benign()
         procedure_name = procedure.__name__
-        print(f"{'='*30}\n[Benign Traffic] Running procedure {count}: {procedure_name}")
         result = procedure()
         
     # Attacks
     else : 
         procedure_name = random_attack()
-        print(f"{'='*30}\n[Attack Traffic] Running procedure {count}: {procedure_name}")
+        
+    # ---- Send the first marker
+    marker_start = Marker(
+        id = count,
+        start = 1,
+        type = procedure_name,
+        attack = is_attack
+    )
+    send(marker_base / marker_start, verbose=False)
+    
+    # Print the attack
+    prefix = "[Attack Traffic]" if traffic_type == TrafficType.ATTACK else "[Benign Traffic]"
+    print(f"{'='*30}\n{prefix} Running procedure {count}: {procedure_name}")
+      
+    # Benign
+    if traffic_type == TrafficType.BENIGN:
+        result = procedure()
+        
+    # Attacks
+    else : 
         execution = docker_exec("evil", f"python evil.py {count} {procedure_name}")
         print(execution)
         result = True if execution else False
+        
+        
+    # ---- Send the second marker
+    marker_start = Marker(
+        id = count,
+        start = 0,
+        type = procedure_name,
+        attack = is_attack
+    )
+    send(marker_base / marker_start, verbose=False)
         
     # Print the result
     result = "✅" if result else "❌"

@@ -1,5 +1,5 @@
 from src.marker.post_process import extract_intervals, replace_addresses, process
-from src.marker.generation import AttackMarker
+from src.marker.generation import Marker
 from src.utils.common import ip_list
 from scapy.layers.inet import IP
 
@@ -13,11 +13,11 @@ def test_intervals():
     for start, stop in intervals.values():
         
         # Intervals bounds are markers
-        assert AttackMarker in packets[start] 
-        assert AttackMarker in packets[stop] 
+        assert Marker in packets[start] 
+        assert Marker in packets[stop] 
         
-        marker_start = packets[start][AttackMarker]
-        marker_stop = packets[stop][AttackMarker]
+        marker_start = packets[start][Marker]
+        marker_stop = packets[stop][Marker]
         
         # The first is a start and the second is an end
         assert marker_start.start

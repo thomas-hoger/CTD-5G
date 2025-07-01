@@ -28,7 +28,6 @@ dn_domains = [
     "bing.com",
     "yahoo.com",
     "amazon.com",
-    "netflix.com",
     "linkedin.com",
     "instagram.com",
     "pinterest.com",
