@@ -3,6 +3,7 @@ from __future__ import annotations
 from enum import Enum
 import re
 import json
+import random
 
 from src.utils.common import docker_exec, ueransim_exec, ue_list, get_docker_iface_from_ip
 
@@ -22,6 +23,12 @@ class PDUSession:
         self.seid = PDUSession.get_seid_by_ip(self.address)
         self.teid = PDUSession.get_teid_by_ip(self.address)
         
+    def get_random_ip():
+        session_infos = docker_exec("upf", "./gtp5g-tunnel list pdr")
+        session_infos = json.loads(session_infos)
+        session = random.choice(session_infos)
+        return session["PDI"]["UEAddr"]
+            
     def get_seid_by_ip(ip:str) -> int | None:
         session_infos = docker_exec("upf", "./gtp5g-tunnel list pdr")
         session_infos = json.loads(session_infos)

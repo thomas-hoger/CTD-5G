@@ -31,12 +31,11 @@ class Attacks():
         
         success = True
         for nf_type in nfs_to_discover : 
-            print(f"-- Requesting info for nf_type={nf_type} with token={token}")
+            print(f"- Requesting info for nf_type={nf_type} ")
             result = instance.get_nf_info(token, nf_type, display=False)
             success = success and result
             
             time_to_sleep = int(random.normalvariate(2, 1))
-            print(f"-- Sleeping for {time_to_sleep} seconds")
             time.sleep(time_to_sleep)
             
         return success
