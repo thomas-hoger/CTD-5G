@@ -4,7 +4,6 @@ import httpx
 import urllib.parse
 import random
 import json
-import os
 
 from src.utils.common import ip_list, generate_variables
 
@@ -112,8 +111,9 @@ class NFInstance:
         return available_ips 
 
     def get_random_nf_type() -> str:
-        nf_types   = [os.path.splitext(f)[0] for f in os.listdir(NF_PARAMETER_FOLDER) if ".json" in f]
-        return random.choice(nf_types).upper()
+        nf_types = ip_list.keys()
+        nf_type:str = random.choice(nf_types)
+        return nf_type.upper()
     
     # NRF REQUESTS 
 

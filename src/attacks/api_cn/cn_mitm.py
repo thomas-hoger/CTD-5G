@@ -46,6 +46,7 @@ class CNMitm:
             else : 
                 legitimate_services = []
             
+            print(f"Replacing instance {legitimate_id}")
             # Create instance object and add them to a list
             legitimate_instance = NFInstance(legitimate_id, nf_to_spoof, legitimate_address, legitimate_services)
             removed = legitimate_instance.remove_nf(CNMitm.attacker_token, display=display)
@@ -69,6 +70,7 @@ class CNMitm:
        
         CNMitm.spoofed_instance = random_instance
         
+        print(f"Add the mitm instance {mitm_id}")
         # Add the attacker as a NF of the right type
         CNMitm.mitm_instance = NFInstance.add_nf(mitm_id, nf_to_spoof, mitm_services, ip_address=mitm_addr, display=display)
         
@@ -110,7 +112,7 @@ class CNMitm:
 
         return True
 
-    def stop() -> bool:
+    def stop(display=True) -> bool:
         """
         Stops the MITM attack by terminating all 'socat' processes and removing the network function associated with the attacker token.
 
@@ -118,4 +120,5 @@ class CNMitm:
             bool: True if the network function was successfully removed, False otherwise.
         """
         os.popen("pkill -f socat")
-        return CNMitm.mitm_instance.remove_nf(CNMitm.attacker_token)
+        print(f"Removing the mitm instance {CNMitm.mitm_instance.nf_instance_id}")
+        return CNMitm.mitm_instance.remove_nf(CNMitm.attacker_token,display=display)

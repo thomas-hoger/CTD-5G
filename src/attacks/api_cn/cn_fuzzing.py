@@ -316,8 +316,9 @@ class CNFuzzing:
                     new_url = re.sub('target-nf-type=(.+?)(&|$)', f'target-nf-type={nf}&', new_url)
                     new_url = re.sub('requester-nf-type=(.+?)(&|$)', 'requester-nf-type=AMF&', new_url)
 
+                    print(f"{nf} {method} : {new_url}")
+                    # print(f"{nf} {method} : {new_url} (header : {header}, body : {body})")
                     for _ in range(nb_ite):
-                        # print(f"{nf} {method} : {new_url} (header : {header}, body : {body})")
 
                         code, result = NFInstance.request_cn(nf, body, method, new_url, header, token=token, display=display)
                         request_result_list.append(code)

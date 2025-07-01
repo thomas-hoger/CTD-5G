@@ -14,7 +14,7 @@ ue_list = []  # Global list to store UserEquipment instances
 
 # Get the IP list of the CN components
 with open("./src/utils/addresses.yaml", "r", encoding="utf-8") as file:
-    ip_list = yaml.safe_load(file)
+    ip_list:dict = yaml.safe_load(file)
     
 dn_domains = [
     "google.com",

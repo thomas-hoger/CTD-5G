@@ -32,8 +32,8 @@ class Attacks():
         success = True
         for nf_type in nfs_to_discover : 
             print(f"- Requesting info for nf_type={nf_type} ")
-            result = instance.get_nf_info(token, nf_type, display=False)
-            success = success and result
+            result  = instance.get_nf_info(token, nf_type, display=False)
+            success = success and result is not None
             
             time_to_sleep = int(random.normalvariate(2, 1))
             time.sleep(time_to_sleep)
@@ -51,14 +51,14 @@ class Attacks():
         nf_type = NFInstance.get_random_nf_type()
         print(f"Starting MITM for nf_type: {nf_type}")
         
-        start = CNMitm.start(nf_type)
+        start = CNMitm.start(nf_type, display=False)
         print(f"-- MITM started: {start}")
         
         time_to_sleep = int(random.normalvariate(60, 10))
         print(f"-- Sleeping for {time_to_sleep} seconds during MITM")
         time.sleep(time_to_sleep)
         
-        stop = CNMitm.stop()
+        stop = CNMitm.stop(display=False)
         print(f"-- MITM stopped: {stop}")
         
         return start and stop
@@ -72,7 +72,7 @@ class Attacks():
         nf = random.choice(nf_list)
         print(f"Fuzzing NF: {nf}")
         result = CNFuzzing().fuzz(nf, nb_file=1, nb_url=10, nb_ite=10, nb_method=1)
-        return len(result) == 10*10
+        return len(result) > 0
         
         # SESSION MANAGEMENT
         
