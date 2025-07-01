@@ -75,7 +75,13 @@ while datetime.now() < end_time:
         
     # Attacks
     else : 
-        execution = docker_exec("evil", f"python evil.py {count} {procedure_name}")
+        args = ""
+        if procedure_name in ["uplink_spoofing", "pfcp_in_gtp"]:
+            ue_addr = PDUSession.get_random_ip()
+            teid    = PDUSession.get_teid_by_ip(ue_addr)
+            args    = f"{ue_addr} {teid}"
+            
+        execution = docker_exec("evil", f"python evil.py {count} {procedure_name} {args}")
         result = True if "True" in execution else False
         print(execution)
         

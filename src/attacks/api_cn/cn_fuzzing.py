@@ -40,7 +40,7 @@ class CNFuzzing:
             yaml_content = yaml_content[step]
         return yaml_content
     
-    def replace_refs_recursively(self, file: str, yaml_content: dict):
+    def replace_refs_recursively(self, file: str, yaml_content: dict, iteration=0):
         """
            Recursively parses a dictionary and replaces all the $ref keys with their actual values.
             Args:
@@ -49,13 +49,16 @@ class CNFuzzing:
             Raises:
                 Exception: If the reference cannot be replaced, an exception is raised.
         """
+        
+        if iteration > 3:
+            return
 
         for key in yaml_content.copy().keys():
 
             # Depth first
             value = yaml_content[key]
             if isinstance(value, dict):
-                self.replace_refs_recursively(file, value)
+                self.replace_refs_recursively(file, value, iteration+1)
 
             if key == "$ref":
 

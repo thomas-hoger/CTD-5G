@@ -32,8 +32,13 @@ class CNMitm:
         removed_instances: list[NFInstance] = []
         for legitimate_instance in infos["nfInstances"]:
             
+            
             legitimate_id = legitimate_instance["nfInstanceId"]
-            legitimate_address = legitimate_instance["ipv4Addresses"][0]
+            
+            if "ipv4Addresses" in legitimate_instance:
+                legitimate_address = legitimate_instance["ipv4Addresses"][0]
+            else : 
+                legitimate_address = get_my_ip_from_prefix()
             
             # Some NF don't have services
             if "nfServices" in legitimate_instance:
