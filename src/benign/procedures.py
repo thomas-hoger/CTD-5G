@@ -53,7 +53,7 @@ class Benigns:
         active_ues = UserEquipment.get_connected_ues()
         ue: UserEquipment = random.choice(active_ues)
         dn_domain = random.choice(dn_domains)
-        pkts_nbr = random.randint(10, 30)
+        pkts_nbr = random.randint(10, 20)
         session = random.choice(ue.sessions)
         print(f"Sending {pkts_nbr} uplink packets from UE {ue.imsi} to {dn_domain} via session {session.address}")
         return session.uplink_traffic(pkts_nbr, dn_domain) 

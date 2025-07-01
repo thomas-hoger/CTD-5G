@@ -17,7 +17,10 @@ class PFCPRequest:
     def random_seq():
         random.randint(1, 0xffff)
 
-    def association_setup(src_addr:str, dst_addr:str, seq:int=random_seq()) -> Packet:
+    def association_setup(src_addr:str, dst_addr:str, seq:int|None=None) -> Packet:
+
+        if seq is None : 
+            seq = PFCPRequest.random_seq()
 
         # Build the complete packet
         return (
@@ -32,7 +35,10 @@ class PFCPRequest:
             )
         )
 
-    def session_establishment(src_addr:str, dst_addr:str, ue_addr:str, seid:int, teid:int, seq:int=random_seq()) -> Packet:
+    def session_establishment(src_addr:str, dst_addr:str, ue_addr:str, seid:int, teid:int, seq:int|None=None) -> Packet:
+        
+        if seq is None : 
+            seq = PFCPRequest.random_seq()
 
         pdr = pfcp.IE_CreatePDR(
             IE_list=[
@@ -73,7 +79,10 @@ class PFCPRequest:
             )
         )
     
-    def session_deletion(src_addr:str, dst_addr:str, seid:int, seq:int=random_seq()) -> Packet:
+    def session_deletion(src_addr:str, dst_addr:str, seid:int, seq:int|None=None) -> Packet:
+        
+        if seq is None : 
+            seq = PFCPRequest.random_seq()
         
         # Build the complete packet
         return (
@@ -87,7 +96,10 @@ class PFCPRequest:
             )
         )
 
-    def session_modification(src_addr:str, dst_addr:str, ue_addr:str, seid:int, teid:int, far_id:int, seq:int=random_seq(), actions:list[str]=["FORW"]) -> Packet:
+    def session_modification(src_addr:str, dst_addr:str, ue_addr:str, seid:int, teid:int, far_id:int, seq:int|None=None, actions:list[str]=["FORW"]) -> Packet:
+
+        if seq is None : 
+            seq = PFCPRequest.random_seq()
 
         # We dynamically prepare the dictionary
         action_flags = {"FORW": 0, "DROP": 0, "BUFF": 0, "NOCP": 0, "DUPL": 0}

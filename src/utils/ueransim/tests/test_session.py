@@ -26,9 +26,14 @@ def test_registration():
     test_ue:UserEquipment = UserEquipment.register_new(test_imsi)
                             
     sessions:list[PDUSession] = PDUSession.get_sessions()
-    assert len(sessions) > 0
-        
     session:PDUSession = sessions[0]
+    assert len(sessions) > 0
+    
+    # ---- Test traffic
+    assert session.uplink_traffic(10, "google.com")
+    assert session.downlink_traffic(10)
+        
+    # ----- Restart
     assert session.restart()
     
     # ----- Deregister UE

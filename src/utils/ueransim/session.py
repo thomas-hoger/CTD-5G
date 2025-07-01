@@ -108,8 +108,9 @@ class PDUSession:
 
     def uplink_traffic(session: PDUSession, packet_quantity:int=10, dn_domain:str="google.com") -> bool:
 
-        res = ueransim_exec(f"ping {dn_domain} -I {session.iface} -c {packet_quantity}")
-        match = re.search(r"(\d+)\s+packets transmitted,\s+(\d+)\s+received", res)
+        command = f"ping {dn_domain} -I {session.iface} -c {packet_quantity}"
+        res     = ueransim_exec(command)
+        match   = re.search(r"(\d+)\s+packets transmitted,\s+(\d+)\s+received", res)
         if match:
             # transmitted = int(match.group(1))
             received = int(match.group(2))
@@ -118,8 +119,9 @@ class PDUSession:
 
     def downlink_traffic(session: PDUSession, packet_quantity:int=3) -> bool:
         
-        res = docker_exec("upf", f"ping {session.address} -I upfgtp -c {packet_quantity}")
-        match = re.search(r"(\d+)\s+packets transmitted,\s+(\d+)\s+received", res)
+        command = f"ping {session.address} -I upfgtp -c {packet_quantity}"
+        res     = docker_exec("upf", command)
+        match   = re.search(r"(\d+)\s+packets transmitted,\s+(\d+)\s+received", res)
         if match:
             # transmitted = int(match.group(1))
             received = int(match.group(2))

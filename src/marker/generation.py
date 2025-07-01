@@ -1,8 +1,6 @@
-from scapy.layers.inet import IP, UDP
+from scapy.layers.inet import Ether
 from scapy.all import Packet, bind_layers
 from scapy.fields import IntField, BitField, StrFixedLenField
-
-from src.utils.common import ip_list
 
 class Marker(Packet):
     name = "Marker"
@@ -14,7 +12,6 @@ class Marker(Packet):
         StrFixedLenField("type", b"", length=20) 
     ]
     
-bind_layers(UDP, Marker, sport=9999)
-    
-# Need to put an IP that exists, else it would do a broadcast
-marker_base = IP(dst=ip_list["UPF"]) / UDP(sport=9999, dport=9999)
+CUSTOM_ETHER_TYPE = 0x88B5
+bind_layers(Ether, Marker, type=CUSTOM_ETHER_TYPE)
+marker_base = Ether(dst="00:11:22:33:44:55", type=CUSTOM_ETHER_TYPE)

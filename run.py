@@ -1,6 +1,8 @@
 from src.benign.procedures import random_benign
 from src.attacks.procedures import random_attack
-from src.utils.ueransim.ue import docker_exec
+from src.utils.common import docker_exec
+from src.utils.ueransim.ue import ue_list, UEState
+from src.utils.protocols.api_cn.instance import NFInstance
 from src.marker.generation import Marker, marker_base
 
 import random
@@ -8,7 +10,7 @@ from enum import Enum
 from datetime import datetime, timedelta
 import argparse
 
-from scapy.all import send
+from scapy.all import sendp
 
 class TrafficType(Enum):
     BENIGN = "benign"
@@ -48,7 +50,6 @@ while datetime.now() < end_time:
     if traffic_type == TrafficType.BENIGN:
         procedure = random_benign()
         procedure_name = procedure.__name__
-        result = procedure()
         
     # Attacks
     else : 
@@ -61,7 +62,7 @@ while datetime.now() < end_time:
         type = procedure_name,
         attack = is_attack
     )
-    send(marker_base / marker_start, verbose=False)
+    sendp(marker_base / marker_start, iface="br-free5gc", verbose=False)
     
     # Print the attack
     prefix = "[Attack Traffic]" if traffic_type == TrafficType.ATTACK else "[Benign Traffic]"
@@ -79,17 +80,24 @@ while datetime.now() < end_time:
         
         
     # ---- Send the second marker
-    marker_start = Marker(
+    marker_stop = Marker(
         id = count,
         start = 0,
         type = procedure_name,
         attack = is_attack
     )
-    send(marker_base / marker_start, verbose=False)
+    sendp(marker_base / marker_stop, iface="br-free5gc", verbose=False)
         
     # Print the result
     result = "✅" if result else "❌"
     print(f"Procedure '{procedure_name}' finished with result: {result}")
+    
+    # Print state of the ues
+    formated_ue_list = [f"UE{ue.id} {"😴" if ue.state == UEState.IDLE else "😀"}" for ue in ue_list]
+    print("Current UE states :", ", ".join(formated_ue_list))
+    
+    # Print state of the ues
+    print("Current NFs :", ", ".join([nf.nf_instance_id.split("-")[0] for nf in NFInstance.nf_list]))
         
     # sleep 2 (+/- 1) seconds between each iteration
     time_to_sleep = int(random.normalvariate(2, 1))

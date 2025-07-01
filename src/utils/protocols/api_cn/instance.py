@@ -173,7 +173,7 @@ class NFInstance:
             instance = NFInstance(nf_instance_id, nf_type, ip_address, nf_services)
             return instance
 
-    def add_random_nf(nf_instance_id:str=generate_variables("uuid"), nf_type="", display=True) -> NFInstance | None :
+    def add_random_nf(nf_instance_id="", nf_type="", display=True) -> NFInstance | None :
         """
         Adds a randomly generated legitimate Network Function (NF) instance with random parameters and IP address.
         Args:
@@ -182,6 +182,9 @@ class NFInstance:
         Returns:
             NFInstance | None: The created NFInstance object if successful, otherwise None.
         """
+        
+        if not nf_instance_id:
+            nf_instance_id=generate_variables("uuid")
         
         if not nf_type :
             nf_type = NFInstance.get_random_nf_type()
