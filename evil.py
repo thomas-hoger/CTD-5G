@@ -12,7 +12,7 @@ if attack_id and attack_name and attack_name in available_attacks :
     # Run the attack
     attack = getattr(Attacks, attack_name)
     
-    if attack in ["uplink_spoofing", "pfcp_in_gtp"]:
+    if attack_name in ["uplink_spoofing", "pfcp_in_gtp"]:
         address = sys.argv[3]
         teid    = sys.argv[4]
         success = attack(address, int(teid))

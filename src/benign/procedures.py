@@ -100,7 +100,7 @@ def random_benign() -> str:
     # Force the first function to be the registration of an UE
     # Because its mandatory to use some attacks
     if len(ue_list) < 1:
-        return [Benigns.register_random_ue]
+        return Benigns.register_random_ue
     
     if len(UserEquipment.get_available_imsi()) > 0:
         possible_procedures.append(Benigns.register_random_ue)
