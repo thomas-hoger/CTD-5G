@@ -3,7 +3,10 @@ from scapy.layers.inet import IP, ICMP, UDP
 from scapy.all import Packet
 from src.utils.protocols.pfcp.pfcp import PFCPRequest
 
-def gtp_uplink_packet(src_addr:str, dst_addr:str, tunnel_dst_addr:str, ue_addr:str, teid:int, seq:int=PFCPRequest.random_seq()) -> Packet:
+def gtp_uplink_packet(src_addr:str, dst_addr:str, tunnel_dst_addr:str, ue_addr:str, teid:int, seq:int|None=None) -> Packet:
+
+    if seq is None : 
+        seq = PFCPRequest.random_seq()
 
     packet = (
         IP(src=src_addr, dst=dst_addr)

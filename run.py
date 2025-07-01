@@ -1,7 +1,8 @@
 from src.benign.procedures import random_benign
 from src.attacks.procedures import random_attack
 from src.utils.common import docker_exec
-from src.utils.ueransim.ue import ue_list, UEState
+from src.utils.ueransim.ue import ue_list, UEState, UserEquipment
+from src.utils.ueransim.session import PDUSession
 from src.utils.protocols.api_cn.instance import NFInstance
 from src.marker.generation import Marker, marker_base
 
@@ -74,10 +75,15 @@ while datetime.now() < end_time:
         
     # Attacks
     else : 
-        execution = docker_exec("evil", f"python evil.py {count} {procedure_name}")
+        args = ""
+        if procedure_name in ["uplink_spoofing", "pfcp_in_gtp"]:
+            ue:UserEquipment = random.choice(ue_list) 
+            session:PDUSession = random.choice(ue.sessions) 
+            args = f"{session.address} {session.teid}"
+            
+        execution = docker_exec("evil", f"python evil.py {count} {procedure_name} {args}")
+        result = True if "True" in execution else False
         print(execution)
-        result = True if execution else False
-        
         
     # ---- Send the second marker
     marker_stop = Marker(
@@ -92,12 +98,15 @@ while datetime.now() < end_time:
     result = "✅" if result else "❌"
     print(f"Procedure '{procedure_name}' finished with result: {result}")
     
-    # Print state of the ues
-    formated_ue_list = [f"UE{ue.id} {"😴" if ue.state == UEState.IDLE else "😀"}" for ue in ue_list]
-    print("Current UE states :", ", ".join(formated_ue_list))
+    # For benign print additionnal info
+    if traffic_type == TrafficType.BENIGN:
     
-    # Print state of the ues
-    print("Current NFs :", ", ".join([nf.nf_instance_id.split("-")[0] for nf in NFInstance.nf_list]))
+        # Print state of the ues
+        formated_ue_list = [f"UE{ue.id} {"😴" if ue.state == UEState.IDLE else "😀"}" for ue in ue_list]
+        print("Current UE states :", ", ".join(formated_ue_list))
+        
+        # Print state of the ues
+        print("Current NFs :", ", ".join([nf.nf_instance_id.split("-")[0] for nf in NFInstance.nf_list]))
         
     # sleep 2 (+/- 1) seconds between each iteration
     time_to_sleep = int(random.normalvariate(2, 1))

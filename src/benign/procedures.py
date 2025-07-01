@@ -97,14 +97,21 @@ def random_benign() -> str:
     
     possible_procedures = []
     
+    # Force the first function to be the registration of an UE
+    # Because its mandatory to use some attacks
+    if len(ue_list) < 1:
+        return [Benigns.register_random_ue]
+    
     if len(UserEquipment.get_available_imsi()) > 0:
         possible_procedures.append(Benigns.register_random_ue)
         
-    if len(ue_list) > 0:
+    if len(ue_list) > 1: # leave at least 1 up
         possible_procedures.append(Benigns.deregister_random_ue)
         
-    if len(UserEquipment.get_connected_ues()) > 0:
+    if len(UserEquipment.get_connected_ues()) > 1: # leave at least 1 connected
         possible_procedures.append(Benigns.set_random_ue_idle)
+    
+    if len(UserEquipment.get_connected_ues()) > 0: 
         possible_procedures.append(Benigns.user_traffic)
         
     if len(UserEquipment.get_idle_ues()) > 0:
@@ -117,7 +124,7 @@ def random_benign() -> str:
     if len(NFInstance.nf_list) < MAX_TEMPORARY_NF:  # Limit the number of NFs to 5
         possible_procedures.append(Benigns.add_random_nf)
         
-    if len(NFInstance.nf_list) > 0:
+    if len(NFInstance.nf_list) > 1: # leave at least 1 up
         possible_procedures.append(Benigns.remove_random_nf)
         
     procedure = random.choice(possible_procedures)
