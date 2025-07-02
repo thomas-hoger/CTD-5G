@@ -1,7 +1,9 @@
 import httpx
 import json
+import re
 
 from src.utils.common import ip_list
+from src.utils.common import docker_exec
 
 WEBUI_PREFIX = f"http://{ip_list["WEBUI"]}:5000"
 
@@ -64,3 +66,21 @@ def add_multiple_subscribers(quantity:int, first_id:int=1) -> bool:
             results.append(result)
             
     return token is not None and all(results)
+
+def _get_known_imsis() -> list [str]:
+    "Returns a list of known IMSIs from the MongoDB database."
+    lines = docker_exec(
+        "mongodb",
+        (
+            "mongo --quiet --eval \""
+            "db.getSiblingDB('free5gc')"
+            ".subscriptionData.authenticationData.authenticationSubscription"
+            ".find()"
+            ".forEach(function(doc) { printjson(doc) });\""
+        )
+    )
+    known_imsi = re.findall(r"imsi-\d{15}", lines)
+    return known_imsi
+
+# Avoid recalculating
+known_imsis = _get_known_imsis()

@@ -1,5 +1,7 @@
 from src.utils.ueransim.ue import UserEquipment, UEState
 from src.utils.ueransim.gnb import gNodeB
+from src.utils.ueransim.database import known_imsis
+
 import pytest
 
 @pytest.fixture(autouse=True)
@@ -25,7 +27,6 @@ def test_registration():
     initial_ues = UserEquipment.get_registered()
     assert len(initial_ues) == 0 # No UEs should be registered initially
     
-    known_imsis = UserEquipment.get_known_imsi()
     assert len(known_imsis) > 0 # Some imsi should be in the known database
     
     # ----- Register 1 UE 

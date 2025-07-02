@@ -7,9 +7,10 @@ import os
 
 from enum import Enum
 
-from src.utils.common import docker_exec, ueransim_exec, ue_list, UE_CONFIG_PATH
+from src.utils.common import ueransim_exec, ue_list, UE_CONFIG_PATH
 from src.utils.ueransim.gnb import gNodeB
 from src.utils.ueransim.session import PDUSession
+from src.utils.ueransim.database import known_imsis
 
 class UEState(Enum):
     CONNECTED = "CM-CONNECTED"
@@ -42,24 +43,9 @@ class UserEquipment:
         imsi_names = re.findall(r"^imsi-.*",components, re.MULTILINE)
         return imsi_names
 
-    def get_known_imsi() -> list [str]:
-        "Returns a list of known IMSIs from the MongoDB database."
-        lines = docker_exec(
-            "mongodb",
-            (
-                "mongo --quiet --eval \""
-                "db.getSiblingDB('free5gc')"
-                ".subscriptionData.authenticationData.authenticationSubscription"
-                ".find()"
-                ".forEach(function(doc) { printjson(doc) });\""
-            )
-        )
-        known_imsi = re.findall(r"imsi-\d{15}", lines)
-        return known_imsi
-
     def get_available_imsi() -> list[str]:
         "Returns a random IMSI that is not currently registered."
-        available_imsi = [imsi for imsi in UserEquipment.get_known_imsi() if imsi not in UserEquipment.get_registered()]
+        available_imsi = [imsi for imsi in known_imsis if imsi not in UserEquipment.get_registered()]
         if len(available_imsi) > 0:
             return random.choice(available_imsi)
         else : 
