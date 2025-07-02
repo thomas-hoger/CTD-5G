@@ -12,15 +12,15 @@ NF_PARAMETER_FOLDER = "./src/utils/protocols/api_cn/new_nf_parameters/free5gc"
 class NFInstance:
     
     nf_type_list = [
-        "UDM",
         "AMF",
-        "SMF",
         "AUSF",
-        "PCF",
-        "UDR",
-        "NSSF",
         "CHF",
         "NEF",
+        "NSSF",
+        "PCF",
+        "SMF",
+        "UDM",
+        "UDR",
     ]
     
     nf_list = []
@@ -111,9 +111,7 @@ class NFInstance:
         return available_ips 
 
     def get_random_nf_type() -> str:
-        nf_types = ip_list.keys()
-        nf_type:str = random.choice(nf_types)
-        return nf_type.upper()
+        return random.choice(NFInstance.nf_type_list)
     
     # NRF REQUESTS 
 

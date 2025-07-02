@@ -61,7 +61,7 @@ class Benigns:
     # NF MANAGEMENT
 
     def add_random_nf() -> bool:
-        instance:NFInstance = NFInstance.add_random_nf()
+        instance:NFInstance = NFInstance.add_random_nf(display=False)
         print("Adding random NF")
         
         if instance:
