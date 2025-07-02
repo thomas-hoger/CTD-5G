@@ -44,7 +44,7 @@ class Benigns:
     def restart() -> bool:
         sessions = PDUSession.get_sessions()
         session: PDUSession = random.choice(sessions)
-        print(f"Restarting PDU session of UE {session.address}")
+        print(f"Restarting PDU session of UE {session.imsi}")
         return session.restart()
 
     # USER TRAFFIC 
@@ -79,10 +79,10 @@ class Benigns:
         # Get a token for this NF
         scope = "nnrf-nfm"
         target_type = "NRF"
-        token = instance.get_token(scope, target_type)
+        token = instance.get_token(scope, target_type, display=False)
         
         if token :
-            success = instance.remove_nf(token)
+            success = instance.remove_nf(token, display=False)
             
             if success:
                 NFInstance.nf_list.remove(instance)

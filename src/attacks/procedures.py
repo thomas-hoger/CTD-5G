@@ -85,7 +85,8 @@ class Attacks():
             PFCPRequest.association_setup(
                 src_addr=get_my_ip_from_prefix(),
                 dst_addr=ip_list["UPF"]
-            )
+            ),
+            verbose=False
         )
         
         time.sleep(5)

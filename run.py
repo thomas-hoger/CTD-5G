@@ -5,6 +5,7 @@ from src.utils.ueransim.ue import ue_list, UEState, UserEquipment
 from src.utils.ueransim.session import PDUSession
 from src.utils.protocols.api_cn.instance import NFInstance
 from src.marker.generation import Marker, marker_base
+from src.utils.ueransim.database import add_multiple_subscribers
 
 import random
 from enum import Enum
@@ -41,6 +42,10 @@ args = parse_args()
 duration = args.duration
 traffic_type = TrafficType(args.traffic_type)
 is_attack = int(traffic_type == TrafficType.ATTACK)
+
+# If 1000 IMSI are not in the database we add them
+if len(UserEquipment.get_known_imsi()) < 999:
+    add_multiple_subscribers(quantity=1000, first_id=1)
         
 # Run attacks or benign
 end_time = datetime.now() + timedelta(minutes=duration)
@@ -102,7 +107,7 @@ while datetime.now() < end_time:
     if traffic_type == TrafficType.BENIGN:
     
         # Print state of the ues
-        formated_ue_list = [f"UE{ue.id} {"😴" if ue.state == UEState.IDLE else "😀"}" for ue in ue_list]
+        formated_ue_list = [f"UE{ue.imsi[-2:]} {"😴" if ue.state == UEState.IDLE else "😀"}" for ue in ue_list]
         print("Current UE states :", ", ".join(formated_ue_list))
         
         # Print state of the ues

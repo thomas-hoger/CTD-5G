@@ -46,7 +46,13 @@ class UserEquipment:
         "Returns a list of known IMSIs from the MongoDB database."
         lines = docker_exec(
             "mongodb",
-            "mongo --eval \"db.getSiblingDB('free5gc').subscriptionData.identityData.find();\""
+            (
+                "mongo --quiet --eval \""
+                "db.getSiblingDB('free5gc')"
+                ".subscriptionData.authenticationData.authenticationSubscription"
+                ".find()"
+                ".forEach(function(doc) { printjson(doc) });\""
+            )
         )
         known_imsi = re.findall(r"imsi-\d{15}", lines)
         return known_imsi
@@ -54,7 +60,10 @@ class UserEquipment:
     def get_available_imsi() -> list[str]:
         "Returns a random IMSI that is not currently registered."
         available_imsi = [imsi for imsi in UserEquipment.get_known_imsi() if imsi not in UserEquipment.get_registered()]
-        return random.choice(available_imsi)
+        if len(available_imsi) > 0:
+            return random.choice(available_imsi)
+        else : 
+            return []
 
     def register_new(imsi:str) -> UserEquipment | None:
         """
