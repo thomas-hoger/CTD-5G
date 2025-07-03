@@ -107,7 +107,7 @@ while datetime.now() < end_time:
     if traffic_type == TrafficType.BENIGN:
     
         # Print state of the ues
-        formated_ue_list = [f"UE{ue.imsi[-4:]} {"😴" if ue.state == UEState.IDLE else "😀"}" for ue in ue_list]
+        formated_ue_list = [f"UE-{ue.imsi[-4:]} {"😴" if ue.state == UEState.IDLE else "😀"}" for ue in ue_list]
         print("Current UE states :", ", ".join(formated_ue_list))
         
         # Print state of the ues

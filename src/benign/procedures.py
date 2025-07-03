@@ -118,8 +118,8 @@ def random_benign() -> str:
         possible_procedures.append(Benigns.uplink_wake_random_ue)
         possible_procedures.append(Benigns.downlink_wake_random_ue)
         
-    if len(PDUSession.get_sessions()) > 0:
-        possible_procedures.append(Benigns.restart)
+    # if len(PDUSession.get_sessions()) > 0:
+    #     possible_procedures.append(Benigns.restart)
         
     if len(NFInstance.nf_list) < MAX_TEMPORARY_NF:  # Limit the number of NFs to 5
         possible_procedures.append(Benigns.add_random_nf)

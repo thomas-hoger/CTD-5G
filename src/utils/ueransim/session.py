@@ -4,12 +4,14 @@ from enum import Enum
 import re
 import json
 import random
+import time
 
-from src.utils.common import docker_exec, ueransim_exec, ue_list, get_docker_iface_from_ip
+from src.utils.common import docker_exec, ueransim_exec, ue_list, get_docker_iface_from_ip, ueransim_timeout
 
 class PDUState(Enum):
     ACTIVE = "PS-ACTIVE"
     INACTIVE = "PS-INACTIVE"
+    PENDING = "PS-ACTIVE-PENDING"
 
 class PDUSession:
     
@@ -101,17 +103,64 @@ class PDUSession:
             })
         return sessions
 
-    def restart(session: PDUSession) -> bool:
-        output = ueransim_exec(f"./nr-cli {session.imsi} -e 'ps-release {session.ps_id}'")
-        return "triggered" in output 
-        
-        # Check if the session is temporarily inactive
-        # updated_sessions = session.get_ue_sessions()
-        # for updated_session in updated_sessions:
-        #     if updated_session["session_id"] == session.id and updated_session["state"] != PDUState.ACTIVE.value:
-        #         return True
+    def wait_ue_session_created(imsi:str, count:int=1) -> bool:
+        """
+        Waits for a specified number of UE sessions to be established for a given IMSI within a timeout period.
+        Args:
+            imsi (str): The IMSI of the UE to check sessions for.
+            count (int, optional): The minimum number of sessions to wait for. Defaults to 1.
+        Returns:
+            bool: True if the required number of sessions are established within the timeout, False otherwise.
+        """
+
+        # Wait until success or timeout
+        for _ in range(ueransim_timeout):
             
-        # return False
+            # Check if the sessions are created 
+            ue_sessions = PDUSession.get_ue_sessions(imsi)
+            
+            # Wait for a new UE appear in the ueransim cli and its session to be registered
+            if len(ue_sessions) >= count:
+                return True
+            
+            time.sleep(1)
+                
+        return False
+    
+    def wait_ue_session_updated(session: PDUSession) -> bool:
+        
+        # Wait until success or timeout
+        for _ in range(ueransim_timeout):
+            
+            # Check if the sessions are created 
+            ue_sessions = PDUSession.get_ue_sessions(session.imsi)
+            
+            # Wait for the session state to be active
+            for ue_session in ue_sessions:
+                if int(ue_session["ps_id"]) == session.ps_id:
+                    if ue_session["state"] == PDUState.ACTIVE.value:
+                        return True
+        
+            time.sleep(1)   
+        return False
+    
+    def restart(session: PDUSession) -> bool:
+        
+        output = ueransim_exec(f"./nr-cli {session.imsi} -e 'ps-release {session.ps_id}'")
+        if "triggered" not in output :
+            return False
+        
+        # wait for the release and re-establishment
+        have_session = session.wait_ue_session_updated()
+        if not have_session : 
+            return False
+           
+        # update session
+        new_status = PDUSession.get_ue_sessions(session.imsi)
+        session.address = new_status["address"]
+        session.iface   = new_status["iface"]
+        session.state   = new_status["state"]
+        return True
 
     def uplink_traffic(session: PDUSession, packet_quantity:int=10, dn_domain:str="google.com") -> bool:
 

@@ -7,7 +7,7 @@ import os
 
 from enum import Enum
 
-from src.utils.common import ueransim_exec, ue_list, UE_CONFIG_PATH
+from src.utils.common import ueransim_exec, ue_list, UE_CONFIG_PATH, ueransim_timeout
 from src.utils.ueransim.gnb import gNodeB
 from src.utils.ueransim.session import PDUSession
 from src.utils.ueransim.database import known_imsis
@@ -18,7 +18,6 @@ class UEState(Enum):
         
 class UserEquipment:
     ue_id_counter = 1  # class variable
-    timeout = 30
 
     def __init__(self, id:int, ran_id: int, amf_id:int, imsi: str, sessions:list[PDUSession], state=UEState.CONNECTED):
         self.id = id
@@ -45,7 +44,7 @@ class UserEquipment:
 
     def get_available_imsi() -> list[str]:
         "Returns a random IMSI that is not currently registered."
-        available_imsi = [imsi for imsi in known_imsis if imsi not in UserEquipment.get_registered()]
+        available_imsi = list(set(known_imsis) - set(UserEquipment.get_registered()))
         if len(available_imsi) > 0:
             return random.choice(available_imsi)
         else : 
@@ -66,9 +65,10 @@ class UserEquipment:
         ueransim_exec(f"./nr-ue -c {UE_CONFIG_PATH} -i {imsi}", read=False) # Start the UE with the given IMSI
             
         is_registered = UserEquipment.wait_ue_registration(imsi, ues_in_gnb)
+        have_session = PDUSession.wait_ue_session_created(imsi)
             
         # Wait for the ue to be registered
-        if is_registered:
+        if is_registered and have_session:
                 
             new_ues_in_gnb = [ue_dict for ue_dict in gNodeB.get_registered_ues_in_gnb(gnb) if ue_dict not in ues_in_gnb]
             new_ue_in_gnb  = new_ues_in_gnb[0]  # Get the first new UE
@@ -102,7 +102,7 @@ class UserEquipment:
 
     def wait_ue_registration(imsi:str, ues_in_gnb:list[dict]) -> bool:
         """
-        Waits for a UE (User Equipment) with the specified IMSI to register with the first available gNodeB and have at least one PDU session created.
+        Waits for a UE (User Equipment) with the specified IMSI to register.
         Args:
             imsi (str): The IMSI of the UE to wait for registration.
         Returns:
@@ -112,17 +112,14 @@ class UserEquipment:
         gnb = gNodeB.get_registered_gnb()[0]  # Get the first registered gNB
         
         # Wait until success or timeout
-        for _ in range(UserEquipment.timeout):
+        for _ in range(ueransim_timeout):
             
             # Do the difference to find the new UE in the gNB
             # This is necessary because the gNB keep its own ue_id and they are needed to manage sessions
             new_ues_in_gnb = [ue_dict for ue_dict in gNodeB.get_registered_ues_in_gnb(gnb) if ue_dict not in ues_in_gnb]
             
-            # Check if the sessions are created 
-            ue_sessions = PDUSession.get_ue_sessions(imsi)
-            
             # Wait for a new UE appear in the ueransim cli and its session to be registered
-            if len(new_ues_in_gnb) > 0 and len(ue_sessions) > 0:
+            if len(new_ues_in_gnb) > 0:
                 return True
             
             time.sleep(1)
@@ -138,7 +135,7 @@ class UserEquipment:
             bool: True if the UE is deregistered before timeout, False otherwise.
         """
         # Wait until success or timeout
-        for _ in range(UserEquipment.timeout):
+        for _ in range(ueransim_timeout):
             registered_ues = UserEquipment.get_registered()
             if ue.imsi not in registered_ues : 
                 return True
@@ -217,7 +214,7 @@ class UserEquipment:
             bool: True if the UE reaches the desired state within the timeout, False otherwise.
         """
         
-        for _ in range(UserEquipment.timeout):
+        for _ in range(ueransim_timeout):
             new_status = ue.get_status()
             if new_status != ue.state: # check if the ue is in IDLE state
                 ue.state = new_status

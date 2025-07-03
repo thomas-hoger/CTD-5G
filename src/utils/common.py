@@ -10,6 +10,7 @@ GNB_CONFIG_PATH = "config/gnbcfg.yaml"
 UE_CONFIG_PATH = "config/uecfg.yaml"
 MAX_TEMPORARY_NF = 10
 
+ueransim_timeout = 60
 ue_list = []  # Global list to store UserEquipment instances
 
 # Get the IP list of the CN components
@@ -20,13 +21,10 @@ dn_domains = [
     "google.com",
     "github.com",
     "facebook.com",
-    "twitter.com",
     "youtube.com",
     "wikipedia.org",
     "reddit.com",
     "stackoverflow.com",
-    "bing.com",
-    "yahoo.com",
     "amazon.com",
     "linkedin.com",
     "instagram.com",

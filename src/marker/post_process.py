@@ -106,7 +106,7 @@ def _replace_addresses(packets: PacketList, ip_to_replace:str) -> PacketList:
     return PacketList(new_packets)
           
 def _remove_markers(packets: PacketList) -> PacketList:
-    return [p for p in packets if Marker not in p]
+    return PacketList([p for p in packets if Marker not in p])
 
 def _filter_attacks(packets: PacketList) -> PacketList:
     return [p for p in packets if IP in p and (p[IP].src == ip_list['EVIL'] or p[IP].dst == ip_list['EVIL'])]
