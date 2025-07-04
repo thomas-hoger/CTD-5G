@@ -7,24 +7,18 @@ def clear_ues():
     
     # Setup
     UserEquipment.terminate_all()
+    test_imsi = UserEquipment.get_available_imsi() # Get a random IMSI that is not currently registered
+    test_ue:UserEquipment = UserEquipment.register_new(test_imsi)
         
     # Execution
     yield 
     
     # Teardown 
+    test_ue.deregister()
     UserEquipment.terminate_all()
-    
 
 def test_registration():
-    
-    # ----- Initial State, no UE registered
-    sessions = PDUSession.get_sessions()
-    assert len(sessions) == 0
-    
-    # ----- Register 1 UE
-    test_imsi = UserEquipment.get_available_imsi() # Get a random IMSI that is not currently registered
-    test_ue:UserEquipment = UserEquipment.register_new(test_imsi)
-                            
+           
     sessions:list[PDUSession] = PDUSession.get_sessions()
     session:PDUSession = sessions[0]
     assert len(sessions) > 0
@@ -32,9 +26,10 @@ def test_registration():
     # ---- Test traffic
     assert session.uplink_traffic(10, "google.com")
     assert session.downlink_traffic(10)
-        
-    # ----- Restart
-    assert session.restart()
     
-    # ----- Deregister UE
-    test_ue.deregister()
+def test_restart():
+    
+    # ----- Register 1 UE
+    sessions = PDUSession.get_sessions()
+    session: PDUSession = sessions[0]
+    assert session.restart()

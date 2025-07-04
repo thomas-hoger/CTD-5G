@@ -6,3 +6,4 @@ local
 test_thomas
 test.py
 output
+*.pcap

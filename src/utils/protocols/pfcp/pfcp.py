@@ -15,7 +15,7 @@ class PFCPRequest:
         return f"10.60.{random.randint(1,254)}.{random.randint(1,254)}"
     
     def random_seq():
-        random.randint(1, 0xffff)
+        return random.randint(1, 0xffff)
 
     def association_setup(src_addr:str, dst_addr:str, seq:int|None=None) -> Packet:
 
@@ -26,7 +26,7 @@ class PFCPRequest:
         return (
             IP(src=src_addr, dst=dst_addr) 
             / UDP(sport=8805, dport=8805) 
-            / pfcp.PFCP(version=1, message_type=5, seid=0, S=0, seq=seq) # The first seid is always supposed to be 0 and is expected to be different from the 2nd one           
+            / pfcp.PFCP(version=1, message_type=5, seid=0, S=0, seq=int(seq)) # The first seid is always supposed to be 0 and is expected to be different from the 2nd one           
             / pfcp.PFCPAssociationSetupRequest(
                 IE_list=[
                     pfcp.IE_NodeId(id_type=0, ipv4=src_addr),

@@ -126,16 +126,17 @@ def get_packets_by_type(packets: PacketList, is_attack=True) -> dict[str:PacketL
         if interval.type not in packets_by_type:
             packets_by_type[interval.type] = PacketList([])
             
+        # add it to the dict
+        packets_by_type[interval.type] += packet_interval
+            
         # if is attack, replace the ip and get only the attacks
         if is_attack:
-            packet_interval = {p_type: _filter_attacks(p_list) for p_type,p_list in packet_interval.items()}
-            packet_interval = {p_type: _replace_addresses(p_list, ip_list["EVIL"]) for p_type,p_list in packet_interval.items()}
+            packet_interval = {p_type: _filter_attacks(p_list) for p_type,p_list in packets_by_type.items()}
+            packet_interval = {p_type: _replace_addresses(p_list, ip_list["EVIL"]) for p_type,p_list in packets_by_type.items()}
             
         # if it is benign, dont take the attacks
         else :    
-            packet_interval = {p_type: _filter_benigns(p_list) for p_type,p_list in packet_interval.items()}
-            
-        packets_by_type[interval.type] += packet_interval
+            packet_interval = {p_type: _filter_benigns(p_list) for p_type,p_list in packets_by_type.items()}
         
     packets_by_type = {p_type: _remove_markers(p_list) for p_type,p_list in packets_by_type.items()}
     return packets_by_type

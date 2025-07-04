@@ -95,7 +95,7 @@ class PDUSession:
                 
         for ps_id, state, address in matches:
             sessions.append({
-                "ps_id" : ps_id,
+                "ps_id" : int(ps_id),
                 "imsi": imsi,
                 "state": PDUState(state),
                 "address": address,
@@ -127,40 +127,53 @@ class PDUSession:
                 
         return False
     
-    def wait_ue_session_updated(session: PDUSession) -> bool:
+    def wait_ue_session_updated(session: PDUSession, old_status:list[dict]) -> bool:
         
         # Wait until success or timeout
         for _ in range(ueransim_timeout):
             
             # Check if the sessions are created 
-            ue_sessions = PDUSession.get_ue_sessions(session.imsi)
+            new_status = PDUSession.get_ue_sessions(session.imsi)
             
             # Wait for the session state to be active
-            for ue_session in ue_sessions:
-                if int(ue_session["ps_id"]) == session.ps_id:
-                    if ue_session["state"] == PDUState.ACTIVE.value:
-                        return True
+            for status in new_status:
+                if status["ps_id"] == session.ps_id:
+                    
+                    # If the address has changed
+                    if status["address"] != session.address:
+                    
+                        # And the session is active
+                        if status["state"] == PDUState.ACTIVE:
+                            return True
         
             time.sleep(1)   
         return False
     
     def restart(session: PDUSession) -> bool:
         
+        old_status = PDUSession.get_ue_sessions(session.imsi)
+        
+        # restart the session        
         output = ueransim_exec(f"./nr-cli {session.imsi} -e 'ps-release {session.ps_id}'")
         if "triggered" not in output :
             return False
-        
+                
         # wait for the release and re-establishment
-        have_session = session.wait_ue_session_updated()
+        have_session = session.wait_ue_session_updated(old_status)
         if not have_session : 
             return False
            
-        # update session
         new_status = PDUSession.get_ue_sessions(session.imsi)
-        session.address = new_status["address"]
-        session.iface   = new_status["iface"]
-        session.state   = new_status["state"]
-        return True
+                
+        # update session
+        for status in new_status:
+            if status["ps_id"] == session.ps_id:
+                session.address = status["address"]
+                session.iface   = status["iface"]
+                session.state   = status["state"]
+                return True
+        
+        return False
 
     def uplink_traffic(session: PDUSession, packet_quantity:int=10, dn_domain:str="google.com") -> bool:
 

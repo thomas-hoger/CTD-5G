@@ -1,7 +1,7 @@
 from src.benign.procedures import random_benign
 from src.attacks.procedures import random_attack
 from src.utils.common import docker_exec
-from src.utils.ueransim.ue import ue_list, UEState, UserEquipment
+from src.utils.ueransim.ue import ue_list, UEState
 from src.utils.ueransim.session import PDUSession
 from src.utils.protocols.api_cn.instance import NFInstance
 from src.marker.generation import Marker, marker_base
@@ -12,7 +12,7 @@ from enum import Enum
 from datetime import datetime, timedelta
 import argparse
 
-from scapy.all import sendp
+from scapy.all import send
 
 class TrafficType(Enum):
     BENIGN = "benign"
@@ -68,7 +68,7 @@ while datetime.now() < end_time:
         type = procedure_name,
         attack = is_attack
     )
-    sendp(marker_base / marker_start, iface="br-free5gc", verbose=False)
+    send(marker_base / marker_start, verbose=False)
     
     # Print the attack
     prefix = "[Attack Traffic]" if traffic_type == TrafficType.ATTACK else "[Benign Traffic]"
@@ -97,7 +97,7 @@ while datetime.now() < end_time:
         type = procedure_name,
         attack = is_attack
     )
-    sendp(marker_base / marker_stop, iface="br-free5gc", verbose=False)
+    send(marker_base / marker_stop, verbose=False)
         
     # Print the result
     result = "✅" if result else "❌"
