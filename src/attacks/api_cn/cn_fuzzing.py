@@ -3,6 +3,7 @@ import random
 import exrex
 import re
 import os
+import time
 
 from src.utils.common import generate_variables
 from src.utils.protocols.api_cn.instance import NFInstance
@@ -322,5 +323,9 @@ class CNFuzzing:
 
                         code, result = NFInstance.request_cn(nf, body, method, new_url, header, token=token, display=display)
                         request_result_list.append(code)
+                        time.sleep(1) # avoid overloading the CN
 
+            # remove the nf_instance to avoid polluting the NRF
+            instance.remove_nf(token,display=False)
+        
         return request_result_list

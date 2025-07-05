@@ -13,6 +13,7 @@ from datetime import datetime, timedelta
 import argparse
 
 from scapy.all import send
+import os
 
 class TrafficType(Enum):
     BENIGN = "benign"
@@ -72,7 +73,8 @@ while datetime.now() < end_time:
     
     # Print the attack
     prefix = "[Attack Traffic]" if traffic_type == TrafficType.ATTACK else "[Benign Traffic]"
-    print(f"{'='*30}\n{prefix} Running procedure {count}: {procedure_name}")
+    timestamp = datetime.now().strftime("%H:%M:%S")
+    print(f"{'='*30}\n{prefix} [{timestamp}] Running procedure {count}: {procedure_name}")
       
     # Benign
     if traffic_type == TrafficType.BENIGN:
@@ -101,7 +103,7 @@ while datetime.now() < end_time:
         
     # Print the result
     result = "✅" if result else "❌"
-    print(f"Procedure '{procedure_name}' finished with result: {result}")
+    print(f"Procedure finished with result: {result}")
     
     # For benign print additionnal info
     if traffic_type == TrafficType.BENIGN:
@@ -116,3 +118,5 @@ while datetime.now() < end_time:
     # sleep 2 (+/- 1) seconds between each iteration
     time_to_sleep = int(random.normalvariate(2, 1))
     count += 1
+    
+os.popen("pkill -f tcpdump")

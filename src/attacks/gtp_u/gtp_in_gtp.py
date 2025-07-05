@@ -9,7 +9,7 @@ import socket
 
 
 def new_seq():
-    return random.randint(0, 0xffff)
+    return random.randint(1, 0xffff)
 
 def build_encapsulated_gtp_payload(upf_addr, teid_outer, teid_inner, ue_addr, src_addr_ue, src_addr):
 

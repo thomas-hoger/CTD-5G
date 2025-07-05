@@ -19,7 +19,7 @@ def clear_ues():
 
 def test_registration():
            
-    sessions:list[PDUSession] = PDUSession.get_sessions()
+    sessions:list[PDUSession] = PDUSession.get_active_sessions()
     session:PDUSession = sessions[0]
     assert len(sessions) > 0
     
@@ -30,6 +30,6 @@ def test_registration():
 def test_restart():
     
     # ----- Register 1 UE
-    sessions = PDUSession.get_sessions()
+    sessions = PDUSession.get_active_sessions()
     session: PDUSession = sessions[0]
     assert session.restart()

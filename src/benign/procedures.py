@@ -45,7 +45,15 @@ class Benigns:
         sessions = PDUSession.get_sessions()
         session: PDUSession = random.choice(sessions)
         print(f"Restarting PDU session of UE {session.imsi}")
-        return session.restart()
+        restart_ok = session.restart()
+        
+        if not restart_ok:
+            print("Failed to restart the session, deregistering UE")
+            ue: UserEquipment = UserEquipment.get_ue_by_imsi(session.imsi)
+            ue.deregister
+            return False
+        
+        return True 
 
     # USER TRAFFIC 
 
@@ -118,8 +126,8 @@ def random_benign() -> str:
         possible_procedures.append(Benigns.uplink_wake_random_ue)
         possible_procedures.append(Benigns.downlink_wake_random_ue)
         
-    # if len(PDUSession.get_sessions()) > 0:
-    #     possible_procedures.append(Benigns.restart)
+    if len(PDUSession.get_sessions()) > 0:
+        possible_procedures.append(Benigns.restart)
         
     if len(NFInstance.nf_list) < MAX_TEMPORARY_NF:  # Limit the number of NFs to 5
         possible_procedures.append(Benigns.add_random_nf)

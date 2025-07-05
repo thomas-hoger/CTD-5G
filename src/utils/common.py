@@ -10,7 +10,7 @@ GNB_CONFIG_PATH = "config/gnbcfg.yaml"
 UE_CONFIG_PATH = "config/uecfg.yaml"
 MAX_TEMPORARY_NF = 10
 
-ueransim_timeout = 60
+ueransim_timeout = 60 * 5
 ue_list = []  # Global list to store UserEquipment instances
 
 # Get the IP list of the CN components

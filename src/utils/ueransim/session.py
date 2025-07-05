@@ -25,11 +25,13 @@ class PDUSession:
         self.seid = PDUSession.get_seid_by_ip(self.address)
         self.teid = PDUSession.get_teid_by_ip(self.address)
         
-    def get_random_ip():
-        session_infos = docker_exec("upf", "./gtp5g-tunnel list pdr")
-        session_infos = json.loads(session_infos)
-        session = random.choice(session_infos)
-        return session["PDI"]["UEAddr"]
+    def get_random_ip() -> str|None:
+        result = ueransim_exec("ip a")
+        ip_list = re.findall(r"inet (10.60.\d+.\d+)", result, re.MULTILINE)
+        if len(ip_list)>0 :
+            return random.choice(ip_list)
+        else:
+            return None
             
     def get_seid_by_ip(ip:str) -> int | None:
         session_infos = docker_exec("upf", "./gtp5g-tunnel list pdr")
@@ -127,7 +129,7 @@ class PDUSession:
                 
         return False
     
-    def wait_ue_session_updated(session: PDUSession, old_status:list[dict]) -> bool:
+    def wait_ue_session_updated(session: PDUSession) -> bool:
         
         # Wait until success or timeout
         for _ in range(ueransim_timeout):
@@ -150,17 +152,16 @@ class PDUSession:
         return False
     
     def restart(session: PDUSession) -> bool:
-        
-        old_status = PDUSession.get_ue_sessions(session.imsi)
-        
+                
         # restart the session        
         output = ueransim_exec(f"./nr-cli {session.imsi} -e 'ps-release {session.ps_id}'")
         if "triggered" not in output :
             return False
                 
         # wait for the release and re-establishment
-        have_session = session.wait_ue_session_updated(old_status)
+        have_session = session.wait_ue_session_updated()
         if not have_session : 
+            print("No session were updated")
             return False
            
         new_status = PDUSession.get_ue_sessions(session.imsi)
@@ -178,6 +179,7 @@ class PDUSession:
     def uplink_traffic(session: PDUSession, packet_quantity:int=10, dn_domain:str="google.com") -> bool:
 
         command = f"ping {dn_domain} -I {session.iface} -c {packet_quantity}"
+        print(command)
         res     = ueransim_exec(command)
         match   = re.search(r"(\d+)\s+packets transmitted,\s+(\d+)\s+received", res)
         if match:
@@ -189,6 +191,7 @@ class PDUSession:
     def downlink_traffic(session: PDUSession, packet_quantity:int=3) -> bool:
         
         command = f"ping {session.address} -I upfgtp -c {packet_quantity}"
+        print(command)
         res     = docker_exec("upf", command)
         match   = re.search(r"(\d+)\s+packets transmitted,\s+(\d+)\s+received", res)
         if match:

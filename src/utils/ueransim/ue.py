@@ -9,7 +9,7 @@ from enum import Enum
 
 from src.utils.common import ueransim_exec, ue_list, UE_CONFIG_PATH, ueransim_timeout
 from src.utils.ueransim.gnb import gNodeB
-from src.utils.ueransim.session import PDUSession
+from src.utils.ueransim.session import PDUSession,PDUState
 from src.utils.ueransim.database import known_imsis
 
 class UEState(Enum):
@@ -33,6 +33,19 @@ class UserEquipment:
         for session in self.sessions:
             if session.id == session_id:
                 return session
+
+    def get_ue_by_imsi(imsi: str) -> UserEquipment | None:
+        """
+        Returns the UserEquipment instance with the specified IMSI.
+        Args:
+            imsi (str): The IMSI of the User Equipment to find.
+        Returns:
+            UserEquipment | None: The UserEquipment instance if found, otherwise None.
+        """
+        for ue in ue_list:
+            if ue.imsi == imsi:
+                return ue
+        return None
 
     # ------- UE registration
 
@@ -83,6 +96,10 @@ class UserEquipment:
                 )
                 for session in PDUSession.get_ue_sessions(imsi)
             ]
+            
+            # The second session don't seem to work 
+            # So we only keep the first one
+            sessions = sessions[:1]
 
             ue = UserEquipment(
                 id = int(new_ue_in_gnb["ue-id"]),
@@ -98,6 +115,8 @@ class UserEquipment:
             return ue
             
         else : # UE was not registered properly in UERANSIM
+            # Also kill the process to avoid zombie processes
+            ueransim_exec(f"pkill -f {imsi}")
             return None
 
     def wait_ue_registration(imsi:str, ues_in_gnb:list[dict]) -> bool:
@@ -156,12 +175,9 @@ class UserEquipment:
         
         # Send deregistration messages
         ueransim_exec(f"./nr-cli {imsi} -e 'deregister normal'")
-        
+                
         # Also kill the process to avoid automatic reboot
-        pid = ueransim_exec(f"ps aux | grep {imsi} | grep -v grep | awk '{{print $2}}'")
-        pid = pid.strip()
-        if pid :
-            ueransim_exec(f"kill -9 {pid}")
+        ueransim_exec(f"pkill -f {imsi}")
             
         is_deregistered = ue.wait_ue_deregistration()
         if is_deregistered:
@@ -175,11 +191,7 @@ class UserEquipment:
     def terminate_all() -> None:
         global ue_list
         ue_list.clear()
-        
-        ue_process = os.popen("ps aux | grep './nr-ue -c' | grep -v grep | awk '{print $2}'").read()
-        for pid in ue_process.split("\n"):
-            if pid.isdigit():
-                os.popen(f"sudo kill -9 {pid}")
+        ueransim_exec("pkill -f imsi")
         time.sleep(1)
 
     # ------- UE state management
@@ -242,6 +254,15 @@ class UserEquipment:
         
         return False
 
+    def get_active_sessions(ue: UserEquipment) -> list[PDUSession]:
+                
+        active_sessions = []
+        for session in ue.sessions:
+            if session.state == PDUState.ACTIVE:
+                active_sessions.append(session)
+                
+        return active_sessions 
+    
     def uplink_wake(ue: UserEquipment) -> bool:
         """
         Attempts to wake up a User Equipment (UE) from IDLE state by sending uplink traffic to a specified domain.
@@ -256,8 +277,11 @@ class UserEquipment:
         
         if ue.state == UEState.IDLE:
             
-            # Send uplink packets, if it fails, return False
-            session = random.choice(ue.sessions)
+            active_sessions = ue.get_active_sessions() 
+            if len(active_sessions) < 1:
+                return False
+            session = random.choice(active_sessions)
+            
             sent = session.uplink_traffic()  # Send ICMP packets to wake up the UE
             if sent:
             
@@ -280,8 +304,12 @@ class UserEquipment:
         
         if ue.state == UEState.IDLE:
             
+            active_sessions = ue.get_active_sessions() 
+            if len(active_sessions) < 1:
+                return False
+            session = random.choice(active_sessions)
+            
             # Send downlink packets, if it fails, return False
-            session = random.choice(ue.sessions)
             sent = session.downlink_traffic()
             if sent:
         

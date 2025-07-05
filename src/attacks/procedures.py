@@ -38,6 +38,8 @@ class Attacks():
             time_to_sleep = int(random.normalvariate(2, 1))
             time.sleep(time_to_sleep)
             
+        # remove the nf_instance to avoid polluting the NRF
+        success = success and instance.remove_nf(token,display=False)
         return success
 
     def cn_mitm() -> bool:
@@ -68,7 +70,7 @@ class Attacks():
             Iterate through the API description of the NF and craft requests with valid parameter names and plausible values.
             Send 10 different urls 10x times each (= 100 packets)
         """
-        nf_list = ["NRF", "UDM", "AMF"]
+        nf_list = ["UDM", "AMF", "NRF"] 
         nf = random.choice(nf_list)
         print(f"Fuzzing NF: {nf}")
         result = CNFuzzing().fuzz(nf, nb_file=1, nb_url=10, nb_ite=10, nb_method=1)
@@ -94,8 +96,8 @@ class Attacks():
         print(f"Number of session establishments to send: {nb}")
 
         for _ in range(nb):
-            seid = random.randint(0x1, PFCPRequest.max_seid)
-            teid = random.randint(0x1, PFCPRequest.max_teid)
+            seid = random.randint(1, PFCPRequest.max_seid)
+            teid = random.randint(1, PFCPRequest.max_teid)
             ue_addr = PFCPRequest.random_ue_address()
             
             send(
@@ -164,8 +166,8 @@ class Attacks():
             SEID and TEID have a minimum of 1000 to avoid impacting legitimate sessions.
         """
         
-        seid    = random.randint(0, PFCPRequest.max_seid)
-        teid    = random.randint(0, PFCPRequest.max_teid)
+        seid    = random.randint(1, PFCPRequest.max_seid)
+        teid    = random.randint(1, PFCPRequest.max_teid)
         ue_addr = PFCPRequest.random_ue_address()
         far_id  = random.randint(1, 1000)
         
@@ -191,13 +193,13 @@ class Attacks():
             The first seid is random (with a minimum of 1000) and then incremented.
             The teid is completely random.
         """
-        first_seid = random.randint(0, PFCPRequest.max_seid)
+        first_seid = random.randint(1, PFCPRequest.max_seid)
         nb = int(random.normalvariate(100, 10))
         print(f"Sending {nb} session modification requests starting from seid={first_seid}")
         
         for i in range(nb):
             seid    = first_seid + i
-            teid    = random.randint(0, PFCPRequest.max_teid)
+            teid    = random.randint(1, PFCPRequest.max_teid)
             ue_addr = PFCPRequest.random_ue_address()
             far_id  = random.randint(1, 1000)
             
