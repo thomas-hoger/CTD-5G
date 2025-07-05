@@ -7,7 +7,7 @@ import json
 
 from src.utils.common import ip_list, generate_variables
 
-NF_PARAMETER_FOLDER = "./src/utils/protocols/api_cn/new_nf_parameters/free5gc"
+NF_PARAMETER_FOLDER = "./src/utils/protocols/api_cn/new_nf_additionnal_data/free5gc"
 
 class NFInstance:
     
@@ -25,11 +25,11 @@ class NFInstance:
     
     nf_list = []
     
-    def __init__(self, nf_instance_id:str , nf_type:str , ip_address:str , services: list[str]):
+    def __init__(self, nf_instance_id:str, nf_type:str , data:dict):
         self.nf_instance_id = nf_instance_id
-        self.nf_type = nf_type
-        self.ip_address = ip_address
-        self.services = services
+        self.nf_type        = nf_type
+        self.data           = data
+        
         self.token = ""
 
     # COMMON 
@@ -109,7 +109,7 @@ class NFInstance:
         available_ips = [f"10.100.200.{i}" for i in range(1,256)]  
         available_ips = [ip for ip in available_ips if ip not in ip_list.values()] # Avoid IPs already used by CN components
         
-        addresses_used_by_temporary_nf = [nf.ip_address for nf in NFInstance.nf_list]
+        addresses_used_by_temporary_nf = [nf.data["ipv4Addresses"][0] for nf in NFInstance.nf_list if "ipv4Addresses" in nf.data and nf.data["ipv4Addresses"]]
         available_ips = [ip for ip in available_ips if ip not in addresses_used_by_temporary_nf] # Avoid IPs already used by temporary NFs
         
         return available_ips 
@@ -119,83 +119,78 @@ class NFInstance:
     
     # NRF REQUESTS 
 
-    def add_nf(nf_instance_id:str, nf_type:str, nf_services:list[str]=[], ip_address="", additionnal_data={}, display=True) -> NFInstance | None :
+    def add_nf(data={}, display=True) -> NFInstance | None :
         """
-        Adds a Network Function (NF) instance to the system, optionally specifying its type, services, IP address, and additional data.
+        Adds a Network Function (NF) instance using provided data.
         Args:
-            nf_instance_id (str): Unique identifier for the NF instance.
-            nf_type (str): Type of the NF instance.
-            nf_services (list[str], optional): List of NF service names to register. Defaults to [].
-            ip_address (str, optional): Specific IP address to assign. If not provided, a random available IP is used. Defaults to "".
-            additionnal_data (dict, optional): Additional fields to include in the NF instance data. Defaults to {}.
+            data (dict, optional): Dictionary containing NF instance details. Must include 'nfInstanceId', 'nfType', and 'ipv4Addresses'.
             display (bool, optional): Whether to display request information. Defaults to True.
         Returns:
             NFInstance | None: The created NFInstance object if successful, otherwise None.
         """
 
-        available_ip_list = NFInstance.get_available_ip_list()
+        try:
+            nf_instance_id = data["nfInstanceId"]
+            nf_type        = data["nfType"]
+        except Exception:
+            return None
         
-        if not ip_address :
-            ip_address = random.choice(available_ip_list)
-            
-        # Required values
-        data = {
-            "nfInstanceId": nf_instance_id,
-            "nfType": nf_type,
-            "nfStatus": "REGISTERED",
-            "ipv4Addresses": [ip_address]
-        }
-        
-        # Optionnal values
-        data = {**data, **additionnal_data}
-
-        # Sugar coating to add services with only their name
-        if nf_services :
-            if "nfServices" not in data.keys() :
-                data["nfServices"] = []
-            
-            for i, nf_service in enumerate(nf_services):
-                data["nfServices"].append(
-                    {
-                        "serviceInstanceId": str(i),
-                        "serviceName": nf_service,
-                        "versions": [{"apiVersionInUri": "v1", "apiFullVersion": "1.0.3"}],
-                        "scheme": "http",
-                        "nfServiceStatus": "REGISTERED",
-                        "ipEndPoints": [
-                            {"ipv4Address": ip_address, "transport": "TCP", "port": 8000}
-                        ],
-                        "apiPrefix": f"http://{ip_address}:8000",
-                    }
-                )
-
         status, _ = NFInstance.request_cn("NRF", data, "PUT", f"/nnrf-nfm/v1/nf-instances/{nf_instance_id}", display=display)
 
         if 200 <= status < 300 :
-            instance = NFInstance(nf_instance_id, nf_type, ip_address, nf_services)
+            instance = NFInstance(nf_instance_id, nf_type, data)
             return instance
 
-    def add_random_nf(nf_instance_id="", nf_type="", display=True) -> NFInstance | None :
+    def add_random_nf(nf_instance_id="", nf_type="", ip_address="", display=True) -> NFInstance | None :
         """
-        Adds a randomly generated legitimate Network Function (NF) instance with random parameters and IP address.
-        Args:
-            nf_instance_id (str): Unique identifier for the NF instance. Defaults to a generated UUID.
-            display (bool, optional): Whether to display request information. Defaults to True.
+        Adds a random Network Function (NF) instance with optional parameters.
+        Parameters:
+            nf_instance_id (str): Optional. The NF instance ID. If not provided, a random UUID is generated.
+            nf_type (str): Optional. The NF type. If not provided, a random type is selected.
+            ip_address (str): Optional. The IP address. If not provided, a random available IP is selected.
+            display (bool): Optional. Whether to display output. Defaults to True.
         Returns:
-            NFInstance | None: The created NFInstance object if successful, otherwise None.
+            NFInstance or None: The created NFInstance object, or None if no available IP address is found.
         """
         
+        # Random ID
         if not nf_instance_id:
             nf_instance_id=generate_variables("uuid")
         
+        # Random type
         if not nf_type :
             nf_type = NFInstance.get_random_nf_type()
         ip_address = random.choice(NFInstance.get_available_ip_list())
         
+        # Random IP address
+        if not ip_address :
+            available_ip_list = NFInstance.get_available_ip_list()
+            if len(available_ip_list) > 0 :
+                ip_address = random.choice(available_ip_list)
+            else : 
+                print("No available IP address found for the new NF instance.")
+                return None
+        
+        # Get the other specific additionnal_data from the file
         with open(f"{NF_PARAMETER_FOLDER}/{nf_type.lower()}.json") as f:
-            parameters = json.load(f)
+            additionnal_data = json.load(f)
+            
+        # Randomly select services if they are provided
+        if "nfServices" in additionnal_data:
+            nf_services = additionnal_data["nfServices"]
+            nf_services = random.sample(nf_services, k=random.randint(0, len(nf_services)))
+            additionnal_data["nfServices"] = nf_services
 
-        return NFInstance.add_nf(nf_instance_id, nf_type.upper(), ip_address=ip_address, additionnal_data=parameters, display=display)
+        # Minimum data required to register an NF instance
+        data  = {
+            "nfInstanceId": nf_instance_id,
+            "nfType": nf_type.upper(),
+            "nfStatus": "REGISTERED",
+            "ipv4Addresses": [ip_address]
+        }
+        data = {**data, **additionnal_data} # Merge with additionnal_data
+
+        return NFInstance.add_nf(data=data, display=display)
 
     def remove_nf(instance: NFInstance, token: str, display=True) -> bool:
         """Remove a Network Function (NF) instance from the system."""

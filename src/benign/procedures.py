@@ -50,7 +50,7 @@ class Benigns:
         if not restart_ok:
             print("Failed to restart the session, deregistering UE")
             ue: UserEquipment = UserEquipment.get_ue_by_imsi(session.imsi)
-            ue.deregister
+            ue.deregister()
             return False
         
         return True 
@@ -115,6 +115,7 @@ def random_benign() -> str:
         
     if len(ue_list) > 1: # leave at least 1 up
         possible_procedures.append(Benigns.deregister_random_ue)
+        possible_procedures.append(Benigns.restart)
         
     if len(UserEquipment.get_connected_ues()) > 1: # leave at least 1 connected
         possible_procedures.append(Benigns.set_random_ue_idle)
@@ -125,9 +126,6 @@ def random_benign() -> str:
     if len(UserEquipment.get_idle_ues()) > 0:
         possible_procedures.append(Benigns.uplink_wake_random_ue)
         possible_procedures.append(Benigns.downlink_wake_random_ue)
-        
-    if len(PDUSession.get_sessions()) > 0:
-        possible_procedures.append(Benigns.restart)
         
     if len(NFInstance.nf_list) < MAX_TEMPORARY_NF:  # Limit the number of NFs to 5
         possible_procedures.append(Benigns.add_random_nf)

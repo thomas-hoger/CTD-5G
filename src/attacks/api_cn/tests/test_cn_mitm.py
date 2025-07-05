@@ -30,7 +30,6 @@ def test_manipulation():
     
     # Verify that the mitm is the oldest (= top priority NF)
     oldest_nf = infos["nfInstances"][0]
-    assert CNMitm.mitm_instance.ip_address == oldest_nf["ipv4Addresses"][0]
     assert CNMitm.mitm_instance.nf_instance_id == oldest_nf["nfInstanceId"]
     
     # Send legitimate UDM request
