@@ -35,8 +35,7 @@ class Attacks():
             result  = instance.get_nf_info(token, nf_type, display=False)
             success = success and result is not None
             
-            time_to_sleep = int(random.normalvariate(2, 1))
-            time.sleep(time_to_sleep)
+            time.sleep(1)
             
         # remove the nf_instance to avoid polluting the NRF
         success = success and instance.remove_nf(token,display=False)

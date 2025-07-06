@@ -116,7 +116,6 @@ while datetime.now() < end_time:
         print("Current NFs :", ", ".join([nf.nf_instance_id.split("-")[0] for nf in NFInstance.nf_list]))
         
     # sleep 2 (+/- 1) seconds between each iteration
-    time_to_sleep = int(random.normalvariate(2, 1))
     count += 1
     
 os.popen("pkill -f tcpdump")

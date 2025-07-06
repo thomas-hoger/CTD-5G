@@ -67,7 +67,8 @@ def _extract_intervals(packets: PacketList, is_attack=True) -> list[Interval]:
                 # If the marker is a stop we modify its end index
                 else :
                     interval = _find_interval(intervals, marker.id, marker.type)
-                    interval.end = i
+                    if interval:
+                        interval.end = i
 
     return intervals
 
@@ -121,24 +122,24 @@ def get_packets_by_type(packets: PacketList, is_attack=True) -> dict[str:PacketL
     for interval in intervals:
         
         packet_interval = PacketList(packets[interval.start:interval.end])
-        
-        # if its the first time seing a packet type
-        if interval.type not in packets_by_type:
-            packets_by_type[interval.type] = PacketList([])
-            
-        # add it to the dict
-        packets_by_type[interval.type] += packet_interval
             
         # if is attack, replace the ip and get only the attacks
         if is_attack:
-            packet_interval = {p_type: _filter_attacks(p_list) for p_type,p_list in packets_by_type.items()}
-            packet_interval = {p_type: _replace_addresses(p_list, ip_list["EVIL"]) for p_type,p_list in packets_by_type.items()}
+            packet_interval = _filter_attacks(packet_interval) 
+            packet_interval =  _replace_addresses(packet_interval, ip_list["EVIL"])
             
         # if it is benign, dont take the attacks
         else :    
-            packet_interval = {p_type: _filter_benigns(p_list) for p_type,p_list in packets_by_type.items()}
+            packet_interval = _filter_benigns(packet_interval) 
         
-    packets_by_type = {p_type: _remove_markers(p_list) for p_type,p_list in packets_by_type.items()}
+        # for all the packets in the interval, remove markers
+        packet_interval = _remove_markers(packet_interval)
+        
+        # add to a dict and create it if it does not exist
+        if interval.type not in packets_by_type:
+            packets_by_type[interval.type] = PacketList([])
+        packets_by_type[interval.type] += packet_interval
+        
     return packets_by_type
 
 def process(packets: PacketList, ip_to_replace:str) -> PacketList:

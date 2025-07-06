@@ -39,9 +39,7 @@ class CNMitm:
             legitimate_instance = NFInstance(legitimate_id, nf_to_spoof, data)
             removed = legitimate_instance.remove_nf(CNMitm.attacker_token, display=display)
             removed_instances.append(legitimate_instance)
-            
-            time.sleep(1) # avoid overloading the CN
-            
+                        
             if not removed :
                 return False
 
