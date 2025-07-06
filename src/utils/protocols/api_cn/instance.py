@@ -160,7 +160,6 @@ class NFInstance:
         # Random type
         if not nf_type :
             nf_type = NFInstance.get_random_nf_type()
-        ip_address = random.choice(NFInstance.get_available_ip_list())
         
         # Random IP address
         if not ip_address :
@@ -177,10 +176,20 @@ class NFInstance:
             
         # Randomly select services if they are provided
         if "nfServices" in additionnal_data:
+            
             nf_services = additionnal_data["nfServices"]
-            nf_services = random.sample(nf_services, k=random.randint(0, len(nf_services)))
-            additionnal_data["nfServices"] = nf_services
-
+            for service in nf_services:
+            
+                # Replace ip endpoints
+                if 'ipEndPoints' in service:
+                    for ep in service['ipEndPoints']:
+                        if 'ipv4Address' in ep:
+                            ep['ipv4Address'] = ip_address
+                      
+                # Replace apiPrefixes      
+                if 'apiPrefix' in service:
+                    service['apiPrefix'] = f"http://{ip_address}:8000"
+                                    
         # Minimum data required to register an NF instance
         data  = {
             "nfInstanceId": nf_instance_id,
