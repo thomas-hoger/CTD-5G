@@ -1,8 +1,7 @@
 
-from src.utils.common import get_my_ip_from_prefix, generate_variables, ip_list
+from src.utils.common import get_my_ip_from_prefix, ip_list
 from src.utils.protocols.api_cn.instance import NFInstance
 
-import random
 import os 
 import time
 
@@ -58,9 +57,7 @@ class CNMitm:
             
             if not added :
                 return False
-            
-            time.sleep(1) # avoid overloading the CN
-                        
+                                    
         return True
                       
     def start(nf_to_spoof:str, display=True) -> bool:
