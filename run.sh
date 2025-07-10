@@ -4,6 +4,7 @@
 echo "[+] Killing previous tcpdump and python processes..."
 sudo pkill -f "tcpdump"
 sudo pkill -f "python -u"
+mkdir -p ./output
 
 # Start tcpdump in the background
 echo "[+] Starting tcpdump..."
