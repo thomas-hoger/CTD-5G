@@ -78,4 +78,4 @@ Although the user plane payload is encrypted and offers limited visibility, its 
 
 To simulate this, we simply launch `ping` requests from the UE to the data network (DN), using the dedicated interface tied to a randomly selected **PDU session**. By routing traffic through this interface, the packets are automatically encapsulated in GTP-U headers before leaving the UE.
 
-The same logic is used for generating uplink traffic. You can find the implementation in [`src/utils/ueransim/session.py`](src/utils/ueransim/session.py).
+You can find the implementation in [`src/utils/ueransim/session.py`](src/utils/ueransim/session.py).

@@ -35,17 +35,38 @@ Detailed descriptions are available in the [src/attacks](./src/attacks) and [src
 | Deregister UE        | ✅                 | ✅          | ✅                      |                        |
 | User Traffic         |                    |              |                         | ✅                     |
 | Add NF               |                    | ✅          |                         |                        |
-| Remove NF            |                    | ✅          |                         |
+| Remove NF            |                    | ✅          |                         |                         |
 
 ### [Attack procedures](./src/attacks)
 
-| **SBI API**         | **Session Management**   | **Packet Forwarding**   |
-|:--------------------|:------------------------:|:-----------------------:|
-| CN MITM             | Flood Establishment      | Uplink Spoofing         |
-| Applicative Scan    | Flood Deletion           | PFCP in GTP             |
-| Fuzz                | SEID Fuzzing             |                         |
-|                     | Modify Drop              |                         |
-|                     | Modify Duplicate         |                         |
+| **Attack**                  | **Surface**             | **Development Status**        |
+|:----------------------------|:------------------------|:------------------------------|
+| CN MITM                     | CN API Call             | ✅ Implemented                |
+| Applicative Scan            | CN API Call             | ✅ Implemented                |
+| API Fuzzing                 | CN API Call             | ✅ Implemented                |
+| Session Establishment Flood | Session Management      | ✅ Implemented                |
+| Session Deletion Flood      | Session Management      | ✅ Implemented                |
+| SEID Fuzzing                | Session Management      | ✅ Implemented                |
+| Session Modify Drop         | Session Management      | ✅ Implemented                |
+| Session Modify Duplicate    | Session Management      | ✅ Implemented                |
+| Uplink Spoofing             | Packet Forwarding       | ✅ Implemented                |
+| PFCP in GTP                 | Packet Forwarding       | ✅ Implemented                |
+| Manipulate Session with AMF | CN API Call             | 🛠️ Work In Progress           |
+| NF Registration Flood       | CN API Call             | 🛠️ Work In Progress           |
+| DoS AMF with malformed NGAP | Access Network          | 📋 Not yet implemented        |
+| UE Connect Inondation       | Access Network          | 📋 Not yet implemented        |
+| Manipulate session with gNB | Access Network          | 📋 Not yet implemented        |
+| Flood contexte release      | Access Network          | 📋 Not yet implemented        |
+| Paging interception         | Access Network          | 📋 Not yet implemented        |
+| RAN MITM                    | Access Network          | 📋 Not yet implemented        |
+| Broadcast fake black-list   | Access Network          | 📋 Not yet implemented        |
+| RRC State Change Flood      | User Equipments         | 📋 Not yet implemented        |
+| Rogue UE replace legitimate | User Equipments         | 📋 Not yet implemented        |
+| Silent Paging               | User Equipments         | 📋 Not yet implemented        |
+| DoS UE with specific value  | User Equipments         | 📋 Not yet implemented        |
+| Slice Pivoting              | Slicing                 | ⛔ Don't work                 |
+| Downlink spoofing           | Packet Forwarding       | ⛔ Don't work                 |
+| GTP-in-GTP                  | Packet Forwarding       | ⛔ Don't work                 |
 
 ## Installation
 
@@ -57,12 +78,18 @@ Detailed descriptions are available in the [src/attacks](./src/attacks) and [src
 git clone https://github.com/thomas-hoger/free5gc-compose.git
 cd free5gc-compose
 docker compose up -d
+cd ..
+```
+### Clone the 5GC API (required to use the fuzzing attack)
+```
+git clone https://github.com/jdegre/5GC_APIs.git
 ```
 ### Install the dataset generator
 ```
 git clone https://github.com/thomas-hoger/CTD-5G.git
 cd CTD-5G
 pip install -r requirements.txt
+cd ..
 ```
 
 ## Usage
