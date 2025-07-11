@@ -11,6 +11,10 @@ The attacks span multiple layers and functionalities of the 5G network, includin
 
 ## API calls in the CN
 
+Toutes les attaques du CN nécessitent l’enregistrement d’une Network Function (NF) pour obtenir un token JWT. De plus, il est souvent nécessaire de connaître la liste des NF déjà enregistrées dans le NRF.
+
+Pour cela, nous avons mis en place trois fonctions principales : `NF registration`, `JWT acquisition`, et `discovery requests`, toutes définies dans [`src/utils/protocols/api_cn/instance.py`](src/utils/protocols/api_cn/instance.py). Ces fonctions utilisent la bibliothèque `httpx` pour gérer les interactions HTTP avec le NRF.
+
 > [!WARNING]
 > All API-based attacks on the core network require registering a network function (NF) and obtaining a JWT token for it. In the case of an attacker sending only a few requests, there's no need to remove the NF afterward. However, since our attack scenarios involve looping requests over several hours, this can eventually overload the NRF and lead to a denial of service. To avoid this, we ensure that our NFs are removed at the end of each attack.
 
@@ -33,8 +37,6 @@ To simulate this attack in practice, the following steps are performed:
 
    - **Broad discovery (suspicious):**  
      5GAD mentions it is technically possible to send a discovery request without specifying any NF type (i.e., a "GetAllNFs" query). This would return all registered NFs of all types. However, this behavior does **not** work in Free5GC. This type of message is not expected in legitimate network traffic, making it highly suspicious and easy to detect.
-
-The three core functions used in this attack (NF registration, JWT acquisition, and discovery requests) are defined in: [`src/utils/protocols/api_cn/instance.py`](src/utils/protocols/api_cn/instance.py). These functions use the `httpx` library to handle HTTP interactions with the NRF.
 
 > [!NOTE]
 > Although broad discovery (GetAllNFs) may fail depending on implementation (e.g., Free5GC), it still represents a likely attacker intent and a clear anomaly in control traffic patterns.
