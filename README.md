@@ -18,6 +18,21 @@ The 2025 version of CTD‑5G has been published on Zenodo; please cite it using 
     Hoger, T., OWEZARSKI, P., & Durand Nauze, G. (2025). Control Traffic Dataset for 5G Networks (CTD5G) (1.0) [Data set]. 
     Zenodo. https://doi.org/10.5281/zenodo.15853959
 ```
+
+The dataset is organized into two main directories:
+
+- **Benign Only**: Contains exclusively benign 5G control-plane traffic samples.
+- **Mixed**: Contains both benign and attack traffic interleaved.
+
+Each of these directories includes:
+- The generated log files.
+- Two subdirectories:
+  - A **processed** (realistic) version of the dataset, suitable for training, evaluation, and benchmarking.
+  - A **original** (raw) version, which retains internal artifacts used to distinguish between benign and malicious samples. This version is primarily intended for development, debugging, or validation.
+
+The processing functions and their behavior are available in [`src/marker`](./src/marker).
+
+
 ## Current status
 
 Development is currently ongoing. Three network surfaces are already well covered, both in terms of attacks and benign traffic. The next step involves implementing attacks targeting the access network.
