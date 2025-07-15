@@ -6,6 +6,18 @@
 <img src="https://img.shields.io/badge/CTD5G-v1.0.0-blue">
 </p>
 
+## Introduction
+
+This repository provides the community with tools to generate plausible 5G control‑plane traffic datasets. It accompanies a manuscript currently under review, which outlines the motivations, gaps in state‑of‑the‑art, and the methodologies we employ.
+
+We offer both a tool and a transparent methodology, with the aim of establishing a common foundation for anomaly‑detection research. While this base may not cover every possible attack or surface, our intention is for it to be co‑evolutionary and allow the community to iteratively improve it in a coordinated direction.
+
+The 2025 version of CTD‑5G has been published on Zenodo; please cite it using the following DOI and link:
+
+```
+    Hoger, T., OWEZARSKI, P., & Durand Nauze, G. (2025). Control Traffic Dataset for 5G Networks (CTD5G) (1.0) [Data set]. 
+    Zenodo. https://doi.org/10.5281/zenodo.15853959
+```
 ## Current status
 
 Development is currently ongoing. Three network surfaces are already well covered, both in terms of attacks and benign traffic. The next step involves implementing attacks targeting the access network.
