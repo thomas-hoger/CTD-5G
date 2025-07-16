@@ -15,7 +15,8 @@ We offer both a tool and a transparent methodology, with the aim of establishing
 The 2025 version of CTD‑5G has been published on Zenodo; please cite it using the following DOI and link:
 
 ```
-    Hoger, T., OWEZARSKI, P., & Durand Nauze, G. (2025). Control Traffic Dataset for 5G Networks (CTD5G) (1.0) [Data set]. 
+    Hoger, T., OWEZARSKI, P., & Durand Nauze, G. (2025).
+    Control Traffic Dataset for 5G Networks (CTD5G) (1.0) [Data set]. 
     Zenodo. https://doi.org/10.5281/zenodo.15853959
 ```
 
@@ -179,7 +180,9 @@ This project is licensed under the [GPL-3.0](https://www.gnu.org/licenses/gpl-3.
 
 If you use this dataset, please cite it:
 ```
-(Zenodo publication in progress)
+    Hoger, T., OWEZARSKI, P., & Durand Nauze, G. (2025).
+    Control Traffic Dataset for 5G Networks (CTD5G) (1.0) [Data set]. 
+    Zenodo. https://doi.org/10.5281/zenodo.15853959
 ```
 If our paper helps your research, please cite:
 ```
