@@ -61,8 +61,8 @@ The core idea of API fuzzing is to send crafted requests with valid syntax but f
    - HTTP methods (e.g., GET, POST, DELETE)
    - Parameters (query, path, body) and their types or patterns
 
-   > [!NOTE]
-   > In practice, parameter schemas often reference external files or other components in the OpenAPI tree. Our current parser is simplistic and often fail to resolve these nested references. Improving this recursive resolution would significantly enhance the attack coverage.
+> [!NOTE]
+> In practice, parameter schemas often reference external files or other components in the OpenAPI tree. Our current parser is simplistic and often fail to resolve these nested references. Improving this recursive resolution would significantly enhance the attack coverage.
 
 3. **Select fuzzing strategy:**  
    Two approaches are possible:
@@ -100,6 +100,9 @@ The full setup sequence is as follows:
 7. Re-register the legitimate NFs with the exact same parameters
 8. Use a `socat` command to forward all incoming traffic from the rogue NF to the original legitimate NF
 
+> [!NOTE]
+> The order of steps 4 to 6 is not strictly mandatory and the MITM NF can be added before removing the legitimate ones.
+
 To stop the attack, simply deregister the rogue NF from the NRF.
 
 <p align="center">
@@ -114,14 +117,11 @@ To stop the attack, simply deregister the rogue NF from the NRF.
   <em>Figure 4 : This sequence diagram represents the second phase, including the VICTIM request and the MITM redirection. To keep the figure concise, the OAuth claims of the JSON Web Token are not shown.</em>
 </p>
 
-> [!NOTE]
-> The order of steps 4 to 6 is not strictly mandatory and the MITM NF can be added before removing the legitimate ones.
-
 ## Session manipulation
 
 All session-based attacks use Scapy along with the PFCP layer, which is defined in `scapy.contrib`. To avoid crafting packets from scratch every time, our attacks rely on helper code located in [`src/utils/protocols/pfcp/pfcp.py`](src/utils/protocols/pfcp/pfcp.py). These attacks require a sequence number, and it is critical that this number is different for each request.
 
-> [!INFO]  
+> [!NOTE]  
 > In free5GC, most PFCP messages we've tested return "Request Accepted" even if the action was not actually successful. This was confirmed by analyzing internal logs. For example, sending a delete request for a non-existent session will still return an "Accepted" response, even though no session was actually deleted.
 
 > [!WARNING]  
@@ -196,11 +196,11 @@ To do this, we simply encapsulate a packet of any type inside a GTP layer. Curre
   <em>Figure 8 : PFCP in GTP in wireshark. The attacker send a pfcp message in the UPF interface dedicated to the UEs. A response is sent back to the attacker, showing that the PFCP request has been interpreted.</em>
 </p>
 
+> [!NOTE]  
+> Currently, we put PFCP inside the GTP layer, but since the UPF interprets the content, in theory this could work with any type of message. For example, one could put GTP inside GTP to target a UE (which does not work on free5GC) or HTTP/2 to simulate sending an API request coming from another NF.
+
 > [!WARNING]  
 > This attack involves sending a message from a UE to the UPF, which requires both an available UE and an active session with a valid TEID. If the attack is launched without these prerequisites, the message will never reach the UPF.
-
-> [!INFO]  
-> Currently, we put PFCP inside the GTP layer, but since the UPF interprets the content, in theory this could work with any type of message. For example, one could put GTP inside GTP to target a UE (which does not work on free5GC) or HTTP/2 to simulate sending an API request coming from another NF.
 
 
 ### Uplink spoofing ✅
