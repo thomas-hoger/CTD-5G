@@ -174,7 +174,7 @@ class NFInstance:
         with open(f"{NF_PARAMETER_FOLDER}/{nf_type.lower()}.json") as f:
             additionnal_data = json.load(f)
             
-        # Randomly select services if they are provided
+        # Change the ip address in the additionnal_data
         if "nfServices" in additionnal_data:
             
             nf_services = additionnal_data["nfServices"]

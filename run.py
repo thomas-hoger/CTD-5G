@@ -7,7 +7,10 @@ from src.utils.protocols.api_cn.instance import NFInstance
 from src.marker.generation import Marker, marker_base
 from src.utils.ueransim.database import add_multiple_subscribers, known_imsis
 
+<<<<<<< HEAD
 import random
+=======
+>>>>>>> caef01f294b50ba72c371bb5f61348b71c78d995
 from enum import Enum
 from datetime import datetime, timedelta
 import argparse
@@ -71,7 +74,11 @@ while datetime.now() < end_time:
     )
     send(marker_base / marker_start, verbose=False)
     
+<<<<<<< HEAD
     # Print the attack
+=======
+    # Print the procedure
+>>>>>>> caef01f294b50ba72c371bb5f61348b71c78d995
     prefix = "[Attack Traffic]" if traffic_type == TrafficType.ATTACK else "[Benign Traffic]"
     timestamp = datetime.now().strftime("%H:%M:%S")
     print(f"{'='*30}\n{prefix} [{timestamp}] Running procedure {count}: {procedure_name}")

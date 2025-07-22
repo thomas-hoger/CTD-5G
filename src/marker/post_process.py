@@ -165,10 +165,11 @@ def process(packets: PacketList, ip_to_replace:str) -> PacketList:
 
         # Packets between last_end et start are processed
         # Bother start and end marker packet are comprised in the input packets
-        processed = _replace_addresses(packets[interval.start:interval.end+1], ip_to_replace)
+        interval_end = interval.end+1 if interval.end is not None else len(packets)
+        processed = _replace_addresses(packets[interval.start:interval_end], ip_to_replace)
         processed_packets += processed
 
-        last_end = interval.end + 1
+        last_end = interval_end
 
     # Add the packet after the last interval
     processed_packets += packets[last_end:]

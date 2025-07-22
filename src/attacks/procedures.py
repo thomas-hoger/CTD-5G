@@ -76,7 +76,9 @@ class Attacks():
         return len(result) > 0
         
         # SESSION MANAGEMENT
-        
+      
+    # SESSION MANAGEMENT  
+      
     def flood_etablishment() -> bool:
         "Send ~100 (+/- 10) session establishment requests with random seid, teid and ue_address"
         
@@ -216,7 +218,7 @@ class Attacks():
             )
         return True
 
-        # PACKET FORWARDING 
+    # USER PLANE ENCAPSULATION
 
     def pfcp_in_gtp(ue_addr:str, teid:int) -> bool:
         """ 

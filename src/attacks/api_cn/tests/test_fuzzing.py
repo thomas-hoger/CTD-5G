@@ -58,6 +58,7 @@ def test_extract_parameters():
     assert "{" not in new_uri
 
 def test_fuzz():
-    fuzzer = CNFuzzing()
-    codes = fuzzer.fuzz("NRF",display=True)
-    assert len(codes) == 1
+    fuzzer   = CNFuzzing()
+    quantity = 5
+    codes    = fuzzer.fuzz("NRF",nb_url=quantity,display=True)
+    assert len(codes) == quantity
