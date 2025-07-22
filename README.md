@@ -61,9 +61,9 @@ Detailed descriptions are available in the [src/attacks](./src/attacks) and [src
 | Downlink Wake        | ✅                 | ✅          | ✅                      |                        |
 | Restart Session      | ✅                 | ✅          | ✅                      |                        |
 | Deregister UE        | ✅                 | ✅          | ✅                      |                        |
-| User Traffic         |                    |              |                         | ✅                     |
 | Add NF               |                    | ✅          |                         |                        |
 | Remove NF            |                    | ✅          |                         |                         |
+| User Traffic         |                    |              |                         | ✅                     |
 
 ### [Attack procedures](./src/attacks)
 
@@ -98,9 +98,6 @@ Detailed descriptions are available in the [src/attacks](./src/attacks) and [src
 
 ## Installation
 
-> [!WARNING]
-> A working 5G simulator is required to use this codebase. Please ensure the simulator is running before starting any experiments.
-
 ### Install the 5G CN and RAN simulator 
 ```
 git clone https://github.com/thomas-hoger/free5gc-compose.git
@@ -121,6 +118,10 @@ cd ..
 ```
 
 ## Usage
+
+> [!WARNING]
+> A working 5G simulator is required to use this codebase. Please ensure the simulator is running before starting any experiments.
+
 ### Run the dataset generator
 You can launch the generator using the CLI:
 ```
