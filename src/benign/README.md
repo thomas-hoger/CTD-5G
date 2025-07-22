@@ -1,10 +1,3 @@
-<<<<<<< HEAD
-- currently, when you do a pdu session release, the session automatically restarts 
-    - unless we find out where and how to prevent this, we can only have a benign restart.
-- nf create and delete instance are sent from the host (always the same IP)
-    - this is not realistic because in normal scenarios the NF registers themselves and the IP the NF use to register is the same that the one in the IP layer of its packet
-    - to fix this we could send the http packets through scapy and spoof the src of the IP layer to match the instance ip 
-=======
 # Benign Procedures — CTD5G Dataset
 
 ## Overview
@@ -86,4 +79,3 @@ Although the user plane payload is encrypted and offers limited visibility, its 
 To simulate this, we simply launch `ping` requests from the UE to the data network (DN), using the dedicated interface tied to a randomly selected **PDU session**. By routing traffic through this interface, the packets are automatically encapsulated in GTP-U headers before leaving the UE.
 
 You can find the implementation in [`src/utils/ueransim/session.py`](src/utils/ueransim/session.py).
->>>>>>> caef01f294b50ba72c371bb5f61348b71c78d995

@@ -3,10 +3,6 @@ from src.utils.common import get_my_ip_from_prefix, ip_list
 from src.utils.protocols.api_cn.instance import NFInstance
 
 import os 
-<<<<<<< HEAD
-import time
-=======
->>>>>>> caef01f294b50ba72c371bb5f61348b71c78d995
 
 class CNMitm:
     
