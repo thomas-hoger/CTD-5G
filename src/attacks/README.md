@@ -38,6 +38,12 @@ To simulate this attack in practice, the following steps are performed:
    - **Broad discovery (suspicious):**  
      5GAD mentions it is technically possible to send a discovery request without specifying any NF type (i.e., a "GetAllNFs" query). This would return all registered NFs of all types. However, this behavior does **not** work in Free5GC. This type of message is not expected in legitimate network traffic, making it highly suspicious and easy to detect.
 
+<p align="center">
+  <img src="../../.github/attacks/scan.png"/>
+  <br/>
+  <em>Figure 1 : Scan result in wireshark. We can see 3 discovery requests made to different nf types.</em>
+</p>
+
 > [!NOTE]
 > Although broad discovery (GetAllNFs) may fail depending on implementation (e.g., Free5GC), it still represents a likely attacker intent and a clear anomaly in control traffic patterns.
 
@@ -55,8 +61,8 @@ The core idea of API fuzzing is to send crafted requests with valid syntax but f
    - HTTP methods (e.g., GET, POST, DELETE)
    - Parameters (query, path, body) and their types or patterns
 
-   > [!NOTE]
-   > In practice, parameter schemas often reference external files or other components in the OpenAPI tree. Our current parser is simplistic and often fail to resolve these nested references. Improving this recursive resolution would significantly enhance the attack coverage.
+> [!NOTE]
+> In practice, parameter schemas often reference external files or other components in the OpenAPI tree. Our current parser is simplistic and often fail to resolve these nested references. Improving this recursive resolution would significantly enhance the attack coverage.
 
 3. **Select fuzzing strategy:**  
    Two approaches are possible:
@@ -71,7 +77,11 @@ The core idea of API fuzzing is to send crafted requests with valid syntax but f
 
 Although the requests are technically valid from a schema point of view, most will be rejected by actual implementations due to missing context, permissions, or sanity checks. Nonetheless, this technique represents a plausible and stealthy attack vector and could evolve into a more sophisticated method with improved logic and better schema parsing.
 
-The parsing and request logic is implemented in [`src/utils/api_fuzzer/parser.py`](src/utils/api_fuzzer/parser.py).
+<p align="center">
+  <img src="../../.github/attacks/fuzzing.png"/>
+  <br/>
+  <em>Figure 2 : Fuzzing result in wireshark. We can see 5 different requests to various urls with random parameters. Most of them fail as expected.</em>
+</p>
 
 ### Applicative Man-in-the-middle ✅
 In 5G core networks, when a discovery request is made to locate a network function providing a particular service, the NRF returns a list of all available instances. If no proper authentication is enforced, an attacker present in the core network can register a rogue NF claiming to offer the desired service. It will then appear in the discovery responses alongside legitimate NFs.
@@ -90,16 +100,28 @@ The full setup sequence is as follows:
 7. Re-register the legitimate NFs with the exact same parameters
 8. Use a `socat` command to forward all incoming traffic from the rogue NF to the original legitimate NF
 
-To stop the attack, simply deregister the rogue NF from the NRF.
-
 > [!NOTE]
 > The order of steps 4 to 6 is not strictly mandatory and the MITM NF can be added before removing the legitimate ones.
+
+To stop the attack, simply deregister the rogue NF from the NRF.
+
+<p align="center">
+  <img src="../../.github/attacks/mitm.png"/>
+  <br/>
+  <em>Figure 3 : MITM result in wireshark. The trace is composed of 2 phases. In the first part we setup the MITM NF registrations and deregistrations. In the second phase a VICTIM (here we reuse the MITM as the VICTIM) make a request to a legitimate NF (here the UDM) that will need to make a request to a spoofed NF (the MITM replaced the UDR).</em>
+</p>
+
+<p align="center">
+  <img src="../../.github/attacks/mitm_sequence.png"/>
+  <br/>
+  <em>Figure 4 : This sequence diagram represents the second phase, including the VICTIM request and the MITM redirection. To keep the figure concise, the OAuth claims of the JSON Web Token are not shown.</em>
+</p>
 
 ## Session manipulation
 
 All session-based attacks use Scapy along with the PFCP layer, which is defined in `scapy.contrib`. To avoid crafting packets from scratch every time, our attacks rely on helper code located in [`src/utils/protocols/pfcp/pfcp.py`](src/utils/protocols/pfcp/pfcp.py). These attacks require a sequence number, and it is critical that this number is different for each request.
 
-> [!INFO]  
+> [!NOTE]  
 > In free5GC, most PFCP messages we've tested return "Request Accepted" even if the action was not actually successful. This was confirmed by analyzing internal logs. For example, sending a delete request for a non-existent session will still return an "Accepted" response, even though no session was actually deleted.
 
 > [!WARNING]  
@@ -107,6 +129,12 @@ All session-based attacks use Scapy along with the PFCP layer, which is defined 
 
 ### Session Establishment flooding ✅
 [Amponis et al.](https://ieeexplore.ieee.org/document/10176693) propose to flood the UPF with a large number of session establishment requests. The goal is to saturate its buffers and exhaust its processing power and memory.
+
+<p align="center">
+  <img src="../../.github/attacks/establishment.png"/>
+  <br/>
+  <em>Figure 5 : Session Establishment flooding in wireshark. We can see the initial association setup, the multiples establishment request and their results : Success. </em>
+</p>
 
 > [!NOTE]  
 > It is essential to first send a PFCP Association Setup Request to the UPF. Without this initial association, the subsequent session establishment requests will not be processed.
@@ -116,6 +144,12 @@ In this attack, [Amponis et al.](https://ieeexplore.ieee.org/document/10176693) 
 
 Since a single deletion request is not inherently problematic and therefore extremely hard—if not impossible—to detect, our implementation simply performs flooding by randomly varying the SEID. The goal is to hit active UEs by chance. While this approach is not particularly effective, it still represents a plausible attack scenario where the attacker is focused on causing random damage or denial of service.
 
+<p align="center">
+  <img src="../../.github/attacks/deletion.png"/>
+  <br/>
+  <em>Figure 6 : Session Deletion flooding in wireshark. We can see the multiples deletion request and their results : Success. </em>
+</p>
+
 ### Session modification ✅
 [Amponis et al.](https://ieeexplore.ieee.org/document/10176693) propose two session modification attacks that target the UPF’s forwarding rules:
 - The **drop attack** modifies the session to discard all packets, silently cutting off communication with the DN without alerting the UE.
@@ -124,6 +158,12 @@ Since a single deletion request is not inherently problematic and therefore extr
 These packets are rarely seen in normal network operations, making them more easily detectable than deletion requests. As such, we assume the attacker already knows a valid SEID to target. Unlike the drop packet, the duplicate packet must include a `FORWARD` flag and define an `Outer Header Creation` IE to specify where to send the duplicated packets.
 
 Modification packets are relatively complex. The key difference between the drop and duplicate versions lies in the packet flags. The **duplicate** version also requires the creation of an **Outer Header Creation** IE to specify the destination for the duplicated traffic.s The DUPL (duplicate) packet must also include a **FORWARD** flag for the modification to work as expected.
+
+<p align="center">
+  <img src="../../.github/attacks/modification.png"/>
+  <br/>
+  <em>Figure 7 : Session Modification in wireshark. In this case the modification is a DROP but the request is almost the same for the DUPL attack and the SEID fuzzing attack. The response is also always the same: Success. </em>
+</p>
 
 > [!WARNING]  
 > In Free5GC, FAR IDs are assigned globally and can’t easily be predicted. Our current dataset uses a fixed FAR ID (1), which usually doesn't match the actual session’s FAR. So, the modification doesn't really apply — but since the network still replies with "Request Accepted," the behavior appears successful in traces. 
@@ -150,11 +190,17 @@ In the current situation, it is possible to send any kind of message from the UE
 
 To do this, we simply encapsulate a packet of any type inside a GTP layer. Currently, we use an Association Setup message, but in the future, we could generalize this to include other types of content.
 
+<p align="center">
+  <img src="../../.github/attacks/pfcp_in_gtp.png"/>
+  <br/>
+  <em>Figure 8 : PFCP in GTP in wireshark. The attacker send a pfcp message in the UPF interface dedicated to the UEs. A response is sent back to the attacker, showing that the PFCP request has been interpreted.</em>
+</p>
+
+> [!NOTE]  
+> Currently, we put PFCP inside the GTP layer, but since the UPF interprets the content, in theory this could work with any type of message. For example, one could put GTP inside GTP to target a UE (which does not work on free5GC) or HTTP/2 to simulate sending an API request coming from another NF.
+
 > [!WARNING]  
 > This attack involves sending a message from a UE to the UPF, which requires both an available UE and an active session with a valid TEID. If the attack is launched without these prerequisites, the message will never reach the UPF.
-
-> [!INFO]  
-> Currently, we put PFCP inside the GTP layer, but since the UPF interprets the content, in theory this could work with any type of message. For example, one could put GTP inside GTP to target a UE (which does not work on free5GC) or HTTP/2 to simulate sending an API request coming from another NF.
 
 
 ### Uplink spoofing ✅
@@ -168,6 +214,11 @@ The packet we generate has two key layers:
 
 This allows the attacker to send traffic that appears to originate from a legitimate UE, abusing the trust placed in GTP traffic by the UPF.
 
+<p align="center">
+  <img src="../../.github/attacks/uplink_spoofing.png"/>
+  <br/>
+  <em>Figure 9 : Uplink spoofing in wireshark. The attacker send a ping to the Data Network while spoofing a UE in its inner header. The response, instead of being directed toward the attacker is directed to the gNB.</em>
+</p>
 
 ### Downlink spoofing ⛔
 The downlink GTP attack does not work on Free5GC due to an internal security check implemented in its GTP-U handling code. Specifically, Free5GC verifies whether the IP address in the packet matches the expected value based on the session context. It uses the direction defined in the PDR (Packet Detection Rule) to determine whether to match the UE address with the source or destination IP of the incoming packet.
