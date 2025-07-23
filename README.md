@@ -99,8 +99,11 @@ Detailed descriptions are available in the [src/attacks](./src/attacks) and [src
 ## Installation
 
 ### Prerequisites
-- Docker is installed (tested with at least 26.1.3)
-- Make is installed
+- docker is installed (tested with at least 26.1.3)
+- make is installed
+- pip3 is installed
+- python is installed (version 3.12 minimum)
+- python3-venv is installed (optionnal but recommended)
 
 ### Install free5gc and UERANSIM dockers
 ```
@@ -121,8 +124,9 @@ git clone https://github.com/jdegre/5GC_APIs.git
 ```
 git clone https://github.com/thomas-hoger/CTD-5G.git
 cd CTD-5G
+python3 -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
-cd ..
 ```
 
 ## Usage
