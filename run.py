@@ -44,8 +44,10 @@ traffic_type = TrafficType(args.traffic_type)
 is_attack = int(traffic_type == TrafficType.ATTACK)
 
 # If 1000 IMSI are not in the database we add them
-if len(known_imsis) < 999:
-    add_multiple_subscribers(quantity=1000, first_id=1)
+NUMBER_OF_KNOWN_UE = 1000
+if len(known_imsis) < NUMBER_OF_KNOWN_UE:
+    print(f"Registering {NUMBER_OF_KNOWN_UE} imsi in the databse, it could take some time...")
+    add_multiple_subscribers(quantity=NUMBER_OF_KNOWN_UE, first_id=1)
         
 # Run attacks or benign
 end_time = datetime.now() + timedelta(minutes=duration)
