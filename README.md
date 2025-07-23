@@ -98,10 +98,18 @@ Detailed descriptions are available in the [src/attacks](./src/attacks) and [src
 
 ## Installation
 
-### Install the 5G CN and RAN simulator 
+### Prerequisites
+- Docker is installed (tested with at least 26.1.3)
+- Make is installed
+
+### Install free5gc and UERANSIM dockers
 ```
 git clone https://github.com/thomas-hoger/free5gc-compose.git
-cd free5gc-compose
+cd free5gc-compose/base
+git clone --recursive -j `nproc` https://github.com/free5gc/free5gc.git
+cd ..
+make all
+docker compose build
 docker compose up -d
 cd ..
 ```
@@ -109,7 +117,7 @@ cd ..
 ```
 git clone https://github.com/jdegre/5GC_APIs.git
 ```
-### Install the dataset generator
+### Install CTD5G
 ```
 git clone https://github.com/thomas-hoger/CTD-5G.git
 cd CTD-5G
