@@ -128,6 +128,7 @@ python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 ```
+You should now have 3 directories at the same level 
 
 ## Usage
 
