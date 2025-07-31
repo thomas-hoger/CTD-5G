@@ -1,7 +1,7 @@
 from scapy.contrib.gtp import GTP_U_Header
 from scapy.layers.inet import IP, ICMP, UDP
 from scapy.all import Packet
-from src.utils.protocols.pfcp.pfcp import PFCPRequest
+from src.utils.protocols.pfcp.requests import PFCPRequest
 
 def gtp_uplink_packet(src_addr:str, dst_addr:str, tunnel_dst_addr:str, ue_addr:str, teid:int, seq:int|None=None) -> Packet:
 

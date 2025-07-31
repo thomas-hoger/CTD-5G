@@ -3,7 +3,7 @@ from __future__ import annotations
 from src.utils.ueransim.ue import UserEquipment 
 from src.attacks.gtp_u.pfcf_in_gtp import pfcp_in_gtp_packet
 from src.utils.common import get_my_ip_from_prefix, ip_list
-from src.utils.protocols.pfcp.pfcp import PFCPRequest
+from src.utils.protocols.pfcp.requests import PFCPRequest
 
 import pytest
 from scapy.all import send

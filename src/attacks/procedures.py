@@ -5,7 +5,7 @@ from scapy.all import send
 from src.utils.common import ip_list, dn_domains, get_my_ip_from_prefix
 
 from src.utils.protocols.api_cn.instance import NFInstance
-from src.utils.protocols.pfcp.pfcp import PFCPRequest
+from src.utils.protocols.pfcp.requests import PFCPRequest
 
 from src.attacks.api_cn.cn_mitm import CNMitm
 from src.attacks.api_cn.cn_fuzzing import CNFuzzing

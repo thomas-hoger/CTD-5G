@@ -2,7 +2,7 @@
 from scapy.packet import Packet, bind_layers
 from scapy.fields import XByteField, ByteField, BitField, XNBytesField
 
-from src.utils.protocols.nas.registration import NAS_Registration
+from src.utils.protocols.nas.layer.registration import NAS_Registration
     
 class NAS_Plaintext(Packet):
     name = "NAS Plaintext"

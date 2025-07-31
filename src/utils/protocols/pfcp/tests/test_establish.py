@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from src.utils.protocols.pfcp.pfcp import PFCPRequest
+from src.utils.protocols.pfcp.requests import PFCPRequest
 from src.utils.common import get_my_ip_from_prefix, ip_list
 
 from scapy.all import send

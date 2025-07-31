@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from src.utils.ueransim.ue import UserEquipment 
-from src.utils.protocols.pfcp.pfcp import PFCPRequest
+from src.utils.protocols.pfcp.requests import PFCPRequest
 from src.utils.ueransim.session import PDUSession 
 from src.utils.common import get_my_ip_from_prefix, ip_list
 
