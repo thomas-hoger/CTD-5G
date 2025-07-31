@@ -1,5 +1,5 @@
 from src.utils.protocols.ngap.layer.common import NGAP, NgapIEType, NgapProcedureCode, NGAP_IE
-from src.utils.protocols.ngap.layer.ies import General_IE_Value, PDU_SESSION_IE, UE_NGAP_IDs
+from src.utils.protocols.ngap.layer.ies import General_IE_Value, PDU_SESSION_IE, UE_NGAP_IDs, User_Location_IE, FIVE_G_TMSI_IE
 
 from scapy.all import Packet
 
@@ -32,6 +32,8 @@ def _int_to_bytes_dynamic(val:int) -> bytes:
     length = max(2, (val.bit_length() + 7) // 8 or 1)
     return val.to_bytes(length, byteorder='big')
 
+# AMF_ID and RAN_ID seem to be equal at low value but differ at higher ones
+# The number of bytes they take depend of their size with a min of 2
 def ngap_ctx_release_command(amf_id:int, ran_id:int) -> Packet:
     
     # Procedure Type and IE List
@@ -54,5 +56,39 @@ def ngap_ctx_release_command(amf_id:int, ran_id:int) -> Packet:
     
     # Cause
     p = p / NGAP_IE(id=NgapIEType.Cause, criticality=0x1) / General_IE_Value()
+    
+    return p
+
+def ngap_deregister(ran_id:int, tmsi:int, nrCellID:int=1, plmnID:int=0x02f839, tac:int=0x1) -> Packet:
+    
+    # Procedure Type and IE List
+    p = NGAP(
+        procedureCode=NgapProcedureCode.InitialUEMessage,
+        criticality=0x1,
+        count=0x6,
+    )
+    
+    # RAN ID
+    p = p / NGAP_IE(id=NgapIEType.RAN_UE_NGAP_ID) / General_IE_Value(value=(ran_id).to_bytes(2))
+    
+    # NAS: TODO
+    
+    # User Location
+    p = p / NGAP_IE(id=NgapIEType.UserLocationInformation) / User_Location_IE(
+        plmnID1 = plmnID,
+        nrCellID = nrCellID,
+        plmnID2 = plmnID,
+        tac = tac    
+    )
+    
+    # Constant
+    p = p / NGAP_IE(id=NgapIEType.RRCEstablishmentCause, criticality=0x1) / General_IE_Value(value=b'\x12')
+    
+    # TMSI
+    p = p / NGAP_IE(id=NgapIEType.FiveG_S_TMSI) / FIVE_G_TMSI_IE(TMSI=(tmsi).to_bytes(4))
+    
+    # Constant
+    p = p / NGAP_IE(id=NgapIEType.UEContextRequest, criticality=0x1) / General_IE_Value(value=b'\x00')
+
     
     return p
