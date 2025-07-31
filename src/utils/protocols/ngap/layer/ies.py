@@ -11,6 +11,16 @@ class NAS_IE(Packet):
         PacketField("NAS", NAS(), NAS),
     ]
     
+class UE_NGAP_IDs(Packet):
+    name = "UE NGAP ID pair"
+    fields_desc = [
+        LenField("length", None, fmt="B"),
+        StrLenField("amf_ue_ngap_id", None, length_from=lambda pkt: pkt.length//2),
+        StrLenField("ran_ue_ngap_id", None, length_from=lambda pkt: pkt.length//2),
+    ]
+    def extract_padding(self, p):
+        return "", p
+    
 class PDU_SESSION_ID(Packet):
     name = "SESSION ID"
     fields_desc = [

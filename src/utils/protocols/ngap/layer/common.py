@@ -4,7 +4,7 @@ from scapy.fields import XByteField, ShortEnumField, LenField, PacketListField, 
 from scapy.layers.sctp import SCTPChunkData
 from enum import Enum
 
-from src.utils.protocols.ngap.layer.ies import NAS_IE, PDU_SESSION_IE, General_IE_Value
+from src.utils.protocols.ngap.layer.ies import NAS_IE, PDU_SESSION_IE, General_IE_Value, UE_NGAP_IDs
 
 # Problem in the SCTP layer
 if len(SCTPChunkData.fields_desc) >= 12:
@@ -19,7 +19,7 @@ class NgapIEType(Enum):
     RRCEstablishmentCause = 90
     TAIListForPaging = 103
     UEContextRequest = 112
-    UE_NGAP_ID = 114
+    UE_NGAP_IDs = 114
     UE_Paging_ID = 115
     UserLocationInformation = 121
     PDUSessionIDList = 133
@@ -27,7 +27,7 @@ class NgapIEType(Enum):
 class NgapProcedureCode(Enum):
     InitialUEMessage = 15
     Paging = 24
-    UEContextRelease = 41
+    UEContextReleaseCommand = 41
     UEContextReleaseRequest = 42
 
 class NGAP_IE(Packet):
@@ -38,12 +38,20 @@ class NGAP_IE(Packet):
     ]
     
     def guess_payload_class(self, payload):
-        if self.id == NgapIEType.NAS_PDU.value:
-            return NAS_IE
-        elif self.id == NgapIEType.PDUSessionIDList.value:
-            return PDU_SESSION_IE
-        else:
-            return General_IE_Value
+        
+        match self.id:
+            
+            case NgapIEType.NAS_PDU.value:
+                return NAS_IE
+            
+            case NgapIEType.PDUSessionIDList.value:
+                return PDU_SESSION_IE
+            
+            case NgapIEType.UE_NGAP_IDs.value:
+                return UE_NGAP_IDs
+            
+            case _:
+                return General_IE_Value
                    
 class NGAP(Packet):
     name = "NGAP"

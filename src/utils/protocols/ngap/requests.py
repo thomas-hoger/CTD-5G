@@ -1,9 +1,11 @@
 from src.utils.protocols.ngap.layer.common import NGAP, NgapIEType, NgapProcedureCode, NGAP_IE
-from src.utils.protocols.ngap.layer.ies import General_IE_Value, PDU_SESSION_IE
+from src.utils.protocols.ngap.layer.ies import General_IE_Value, PDU_SESSION_IE, UE_NGAP_IDs
 
 from scapy.all import Packet
 
-def ngap_ctx_release(amf_id:int, ran_id:int, session_id_list:list[int]) -> Packet:
+# AMF_ID and RAN_ID always seem to be equal
+# There is not always 2 sessions
+def ngap_ctx_release_request(amf_id:int, ran_id:int, session_id_list:list[int]) -> Packet:
 
     # Procedure Type and IE List
     p = NGAP(
@@ -25,5 +27,32 @@ def ngap_ctx_release(amf_id:int, ran_id:int, session_id_list:list[int]) -> Packe
     
     return p
 
-p = ngap_ctx_release(amf_id=1, ran_id=1, session_id_list=[1,2])
-p.show2()
+def _int_to_bytes_dynamic(val:int) -> bytes:
+    """Return the smallest bytes possible (with minimum 2 bytes) of the val conversion"""
+    length = max(2, (val.bit_length() + 7) // 8 or 1)
+    return val.to_bytes(length, byteorder='big')
+
+def ngap_ctx_release_command(amf_id:int, ran_id:int) -> Packet:
+    
+    # Procedure Type and IE List
+    p = NGAP(
+        procedureCode=NgapProcedureCode.UEContextReleaseCommand,
+        criticality=0x0,
+        count=0x2,
+    )
+    
+    # Calculate the bytes of dynamic size
+    amf_bytes = _int_to_bytes_dynamic(amf_id)
+    ran_bytes = _int_to_bytes_dynamic(ran_id)
+
+    # AMF and RAN IDs
+    p = p / NGAP_IE(id=NgapIEType.UE_NGAP_IDs) / UE_NGAP_IDs(
+        length = len(amf_bytes) + len(ran_bytes),
+        amf_ue_ngap_id = amf_bytes,
+        ran_ue_ngap_id = ran_bytes,
+    )
+    
+    # Cause
+    p = p / NGAP_IE(id=NgapIEType.Cause, criticality=0x1) / General_IE_Value()
+    
+    return p
