@@ -1,14 +1,14 @@
 
 from scapy.packet import Packet
 from scapy.fields import ShortField, XByteField, PacketListField, X3BytesField
-from scapy.fields import BitField, XNBytesField, PacketField, XBitField
+from scapy.fields import BitField, XNBytesField, PacketField, XBitField, LenField
 
 class NSSAI(Packet):
     name = "NSSAI"
     fields_desc = [
         XByteField("length", 4),
-        XByteField("sst", 1),
-        X3BytesField("sd", 0x010203)
+        XByteField("sst", None),
+        X3BytesField("sd", None)
     ]
     def extract_padding(self, p):
         return "", p
@@ -17,12 +17,11 @@ class Requested_NSSAI(Packet):
     name = "Requested NSSAI"
     fields_desc = [
         XByteField("element_id", 0x2f),
-        XByteField("length", None),
+        LenField("length", None),
         PacketListField("nssai_list", [], NSSAI, length_from=lambda pkt: pkt.length)
     ]
     def extract_padding(self, p):
-        return "", p
-    
+        return "", p   
     
 class UE_Secu_Capabilities(Packet):
     name = "UE Secu Capabilities"
@@ -34,13 +33,13 @@ class UE_Secu_Capabilities(Packet):
     def extract_padding(self, p):
         return "", p
     
-class Mobile_Identity(Packet):
+class Registration_Mobile_Identity(Packet):
     name = "Mobile Identity"
     fields_desc = [
-        ShortField("length", 13),
+        LenField("length", 13),
         BitField("supi_format", 0x0, 4),
         BitField("type_of_id", 0x0001, 4),
-        X3BytesField("mcc_and_mnc", 0x02f839), # mcc = 208 (02 + f8 -> 20 8f -> 208) mnc = 93 (39 -> 93)
+        X3BytesField("plmnID", 0x02f839), # mcc = 208 (02 + f8 -> 20 8f -> 208) mnc = 93 (39 -> 93)
         ShortField("routing_indicator", 0),
         XByteField("protection_scheme", 0),
         XByteField("home_network_pub_key", 0),
@@ -54,7 +53,7 @@ class NAS_Registration(Packet):
     fields_desc = [
         XBitField("key_identifier", 0x0111, 4),
         XBitField("registration_type", 0x1001, 4),
-        PacketField("mobile_identity", Mobile_Identity(), Mobile_Identity),
+        PacketField("mobile_identity", Registration_Mobile_Identity(), Registration_Mobile_Identity),
         PacketField("ue_secu_capabilities", UE_Secu_Capabilities(), UE_Secu_Capabilities),
         PacketField("requested_nssai", Requested_NSSAI(), Requested_NSSAI),
     ]

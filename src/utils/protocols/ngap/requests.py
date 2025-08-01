@@ -1,6 +1,9 @@
 from src.utils.protocols.ngap.layer.common import NGAP, NgapIEType, NgapProcedureCode, NGAP_IE
 from src.utils.protocols.ngap.layer.ies import General_IE_Value, PDU_SESSION_IE, UE_NGAP_IDs, User_Location_IE, FIVE_G_TMSI_IE
 
+from src.utils.protocols.nas.layer.requests import nas_registration, nas_deregistration
+
+
 from scapy.all import Packet
 
 # AMF_ID and RAN_ID always seem to be equal
@@ -59,7 +62,38 @@ def ngap_ctx_release_command(amf_id:int, ran_id:int) -> Packet:
     
     return p
 
-def ngap_deregister(ran_id:int, tmsi:int, nrCellID:int=1, plmnID:int=0x02f839, tac:int=0x1) -> Packet:
+def ngap_register(ran_id:int, msin:int, nssai_list:int=[(1,0x010203),(1,0x112233)], nrCellID:int=1, plmnID:int=0x02f839, tac:int=0x1) -> Packet:
+    
+    # Procedure Type and IE List
+    p = NGAP(
+        procedureCode=NgapProcedureCode.InitialUEMessage,
+        criticality=0x1,
+        count=0x5,
+    )
+    
+    # RAN ID
+    p = p / NGAP_IE(id=NgapIEType.RAN_UE_NGAP_ID) / General_IE_Value(value=(ran_id).to_bytes(2))
+    
+    # NAS Register
+    p = p / NGAP_IE(id=NgapIEType.NAS_PDU) / nas_registration(msin, nssai_list, plmnID)
+    
+    # User Location
+    p = p / NGAP_IE(id=NgapIEType.UserLocationInformation) / User_Location_IE(
+        plmnID1 = plmnID,
+        nrCellID = nrCellID,
+        plmnID2 = plmnID,
+        tac = tac    
+    )
+    
+    # Constant
+    p = p / NGAP_IE(id=NgapIEType.RRCEstablishmentCause, criticality=0x1) / General_IE_Value(value=b'\x18')
+    
+    # Constant
+    p = p / NGAP_IE(id=NgapIEType.UEContextRequest, criticality=0x1) / General_IE_Value(value=b'\x00')
+    
+    return p
+
+def ngap_deregister(ran_id:int, tmsi:int, message_auth:int, sequence_number=0, nrCellID:int=1, plmnID:int=0x02f839, tac:int=0x1) -> Packet:
     
     # Procedure Type and IE List
     p = NGAP(
@@ -71,7 +105,8 @@ def ngap_deregister(ran_id:int, tmsi:int, nrCellID:int=1, plmnID:int=0x02f839, t
     # RAN ID
     p = p / NGAP_IE(id=NgapIEType.RAN_UE_NGAP_ID) / General_IE_Value(value=(ran_id).to_bytes(2))
     
-    # NAS: TODO
+    # NAS Deregister
+    p = p / NGAP_IE(id=NgapIEType.NAS_PDU) / nas_deregistration(tmsi, message_auth, sequence_number, plmnID)
     
     # User Location
     p = p / NGAP_IE(id=NgapIEType.UserLocationInformation) / User_Location_IE(
@@ -85,10 +120,9 @@ def ngap_deregister(ran_id:int, tmsi:int, nrCellID:int=1, plmnID:int=0x02f839, t
     p = p / NGAP_IE(id=NgapIEType.RRCEstablishmentCause, criticality=0x1) / General_IE_Value(value=b'\x12')
     
     # TMSI
-    p = p / NGAP_IE(id=NgapIEType.FiveG_S_TMSI) / FIVE_G_TMSI_IE(TMSI=(tmsi).to_bytes(4))
+    p = p / NGAP_IE(id=NgapIEType.FiveG_S_TMSI) / FIVE_G_TMSI_IE(TMSI=tmsi)
     
     # Constant
     p = p / NGAP_IE(id=NgapIEType.UEContextRequest, criticality=0x1) / General_IE_Value(value=b'\x00')
-
     
     return p

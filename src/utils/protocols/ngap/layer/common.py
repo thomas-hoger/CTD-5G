@@ -4,7 +4,7 @@ from scapy.fields import XByteField, ShortEnumField, LenField, PacketListField, 
 from scapy.layers.sctp import SCTPChunkData
 from enum import Enum
 
-from src.utils.protocols.ngap.layer.ies import NAS_IE, PDU_SESSION_IE, General_IE_Value, UE_NGAP_IDs
+from src.utils.protocols.ngap.layer.ies import NAS_IE, PDU_SESSION_IE, General_IE_Value, UE_NGAP_IDs, FIVE_G_TMSI_IE, User_Location_IE
 
 # Problem in the SCTP layer
 if len(SCTPChunkData.fields_desc) >= 12:
@@ -49,6 +49,12 @@ class NGAP_IE(Packet):
             
             case NgapIEType.UE_NGAP_IDs.value:
                 return UE_NGAP_IDs
+            
+            case NgapIEType.UserLocationInformation.value:
+                return User_Location_IE
+            
+            case NgapIEType.FiveG_S_TMSI.value:
+                return FIVE_G_TMSI_IE
             
             case _:
                 return General_IE_Value

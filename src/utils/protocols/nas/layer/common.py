@@ -1,8 +1,14 @@
 
 from scapy.packet import Packet, bind_layers
 from scapy.fields import XByteField, ByteField, BitField, XNBytesField
+from enum import Enum
 
-from src.utils.protocols.nas.layer.registration import NAS_Registration
+from src.utils.protocols.nas.layer.register import NAS_Registration
+from src.utils.protocols.nas.layer.deregister import NAS_Deregistration
+    
+class Message_Type(Enum):
+    RegistrationRequest = 0x41
+    DeregistrationRequest = 0x45
     
 class NAS_Plaintext(Packet):
     name = "NAS Plaintext"
@@ -13,16 +19,16 @@ class NAS_Plaintext(Packet):
 class NAS_Protected(Packet):
     name = "NAS Protected"
     fields_desc = [
-        XNBytesField("message_auth", 0x10, 4),
+        XNBytesField("message_auth", None, 4),
         ByteField("seq_number", 0)
     ]
     
 class NAS(Packet):
     name = "NAS"
     fields_desc = [
-        BitField("epd", None, 2),       # Extended Protocol Discriminator
-        BitField("spare", None, 6),       # 1/2 spare octet
-        BitField("security", None, 4),    # 1/2 byte : header type
+        XByteField("epd", 0x7e),        # Extended Protocol Discriminator
+        BitField("spare", 0x0, 4),     # 1/2 spare octet
+        BitField("security", None, 4),  # 1/2 byte : header type
     ]
     
     def guess_payload_class(self, payload):
@@ -31,5 +37,6 @@ class NAS(Packet):
         else:
             return NAS_Protected
         
-bind_layers(NAS_Plaintext, NAS_Registration, message_type=0x41)
+bind_layers(NAS_Plaintext, NAS_Registration, message_type=Message_Type.RegistrationRequest)
+bind_layers(NAS_Plaintext, NAS_Deregistration, message_type=Message_Type.DeregistrationRequest)
 bind_layers(NAS_Protected, NAS)

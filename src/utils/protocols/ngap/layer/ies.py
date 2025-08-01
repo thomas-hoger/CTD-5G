@@ -1,5 +1,5 @@
 from scapy.packet import Packet
-from scapy.fields import XByteField, FieldLenField, NBytesField, ShortField, X3BytesField, LenField, StrLenField, PacketListField, PacketField
+from scapy.fields import XByteField, FieldLenField, XNBytesField, IntField, ShortField, X3BytesField, LenField, StrLenField, PacketListField, PacketField
 
 from src.utils.protocols.nas.layer.common import NAS
 
@@ -10,26 +10,33 @@ class NAS_IE(Packet):
         LenField("length2", None, fmt="B"), # having 2 is not a mistake
         PacketField("NAS", NAS(), NAS),
     ]
+    def extract_padding(self, p):
+        return "", p
     
 class User_Location_IE(Packet):
     name = "User Location IE"
     fields_desc = [
         LenField("length", None, fmt="B"), 
-        XByteField("unknown_param", 0x50),
+        XByteField("unknown_param1", 0x50),
         X3BytesField("plmnID1", 0x02f839), # mcc = 208 (02 + f8 -> 20 8f -> 208) mnc = 93 (39 -> 93)
-        NBytesField("nrCellID", 0x1, 4),
+        XNBytesField("nrCellID", 0x1, 4),
+        XByteField("unknown_param2", 0x0),
         X3BytesField("plmnID2", 0x02f839),
         X3BytesField("tac", 0x1),
-        NBytesField("timeStamp", 0xec162cfc, 4) # (Jul  7, 2025 11:24:44 UTC)
+        XNBytesField("timeStamp", 0xec162cfc, 4) # (Jul  7, 2025 11:24:44 UTC)
     ]
+    def extract_padding(self, p):
+        return "", p
     
 class FIVE_G_TMSI_IE(Packet):
     name = "5G TMSI IE"
     fields_desc = [
         LenField("length", None, fmt="B"), 
         X3BytesField("AMF_SetID_Pointer", 0x3f8000),
-        NBytesField("TMSI", None, 4)
+        IntField("TMSI", None)
     ]
+    def extract_padding(self, p):
+        return "", p
     
 class UE_NGAP_IDs(Packet):
     name = "UE NGAP ID pair"
