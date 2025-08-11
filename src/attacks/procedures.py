@@ -16,6 +16,17 @@ from src.attacks.gtp_u.uplink_spoofing import gtp_uplink_packet
 class Attacks():
 
     # CORE NETWOTK INTERACTION 
+    
+    # def nf_instance_flood() -> bool:
+    #     "Create ~100 (+/- 10) random NF instance"
+   
+    #     success = True
+    #     nb = int(random.normalvariate(100, 10))
+    #     for _ in range(nb):
+    #         instance = NFInstance.add_random_nf(display=False)
+    #         success = success and instance is not None
+            
+    #     return success
 
     def applicative_scan() -> bool:
         """

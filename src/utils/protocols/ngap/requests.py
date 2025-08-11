@@ -126,3 +126,22 @@ def ngap_deregister(ran_id:int, tmsi:int, message_auth:int, sequence_number=0, n
     p = p / NGAP_IE(id=NgapIEType.UEContextRequest, criticality=0x1) / General_IE_Value(value=b'\x00')
     
     return p
+
+def ngap_malformed() -> Packet:
+    
+    plmnID = 0x02f839 
+    
+    # Procedure Type and IE List
+    p = NGAP(
+        procedureCode=0x28, # UEContextModification, supposed to be send from AMF to gNB not the other way
+        count=0x3030,
+    )
+    
+    # RAN ID
+    p = p / NGAP_IE(id=NgapIEType.RAN_UE_NGAP_ID) / General_IE_Value(value=b'\x18')
+    p = p / NGAP_IE(id=NgapIEType.NAS_PDU) / nas_registration(1, [1,0x10], plmnID)
+    p = p / NGAP_IE(id=NgapIEType.UserLocationInformation) / User_Location_IE()
+    p = p / NGAP_IE(id=NgapIEType.RRCEstablishmentCause, criticality=0x1) / General_IE_Value(value=b'\x18')
+    p = p / NGAP_IE(id=NgapIEType.UEContextRequest, criticality=0x1) / General_IE_Value(value=b'\x00')
+    
+    return p
