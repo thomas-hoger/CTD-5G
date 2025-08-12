@@ -34,7 +34,7 @@ class NGAP_IE(Packet):
     name = "NGAP IE"
     fields_desc = [
         ShortEnumField("id", None, NgapIEType),
-        XByteField("criticality", None)
+        XByteField("criticality", 0)
     ]
     
     def guess_payload_class(self, payload):
@@ -63,7 +63,7 @@ class NGAP(Packet):
     name = "NGAP"
     fields_desc = [
         ShortEnumField("procedureCode", None, NgapProcedureCode),
-        XByteField("criticality", 0),
+        XByteField("criticality", 0x0),
         LenField("length", None, fmt="B"),
         ConditionalField(XByteField("asn_extra", 0), lambda pkt: pkt.length == 0x80),
         X3BytesField("count", 0),

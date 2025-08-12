@@ -1,22 +1,19 @@
-from scapy.packet import Packet
-from scapy.fields import XByteField, FieldLenField, XNBytesField, IntField, ShortField, X3BytesField, LenField, StrLenField, PacketListField, PacketField
+from scapy.packet import Packet, bind_layers
+from scapy.fields import XByteField, FieldLenField, XNBytesField, IntField, ShortField, X3BytesField, ByteField, StrLenField, PacketListField
 
 from src.utils.protocols.nas.layer.common import NAS
 
 class NAS_IE(Packet):
     name = "NAS IE"
     fields_desc = [
-        LenField("length1", None, fmt="B"),
-        LenField("length2", None, fmt="B"), # having 2 is not a mistake
-        PacketField("NAS", NAS(), NAS),
+        ByteField("length1", None),
+        ByteField("length2", None), # having 2 is not a mistake
     ]
-    def extract_padding(self, p):
-        return "", p
     
 class User_Location_IE(Packet):
     name = "User Location IE"
     fields_desc = [
-        LenField("length", None, fmt="B"), 
+        ByteField("length", 19), 
         XByteField("unknown_param1", 0x50),
         X3BytesField("plmnID1", 0x02f839), # mcc = 208 (02 + f8 -> 20 8f -> 208) mnc = 93 (39 -> 93)
         XNBytesField("nrCellID", 0x1, 4),
@@ -31,7 +28,7 @@ class User_Location_IE(Packet):
 class FIVE_G_TMSI_IE(Packet):
     name = "5G TMSI IE"
     fields_desc = [
-        LenField("length", None, fmt="B"), 
+        ByteField("length", 7), 
         X3BytesField("AMF_SetID_Pointer", 0x3f8000),
         IntField("TMSI", None)
     ]
@@ -41,7 +38,7 @@ class FIVE_G_TMSI_IE(Packet):
 class UE_NGAP_IDs(Packet):
     name = "UE NGAP ID pair"
     fields_desc = [
-        LenField("length", None, fmt="B"),
+        ByteField("length", 6), 
         StrLenField("amf_ue_ngap_id", None, length_from=lambda pkt: pkt.length//2),
         StrLenField("ran_ue_ngap_id", None, length_from=lambda pkt: pkt.length//2),
     ]
@@ -59,8 +56,8 @@ class PDU_SESSION_ID(Packet):
 class PDU_SESSION_IE(Packet):
     name = "PDU SESSION IE"
     fields_desc = [
-        LenField("length", None, fmt="B"),
-        XByteField("count", 0),
+        ByteField("length", 5),
+        ByteField("count", 2),
         PacketListField("session_list", [], PDU_SESSION_ID, count_from=lambda pkt: pkt.count+1)
     ]
     def extract_padding(self, p):
@@ -74,3 +71,5 @@ class General_IE_Value(Packet):
     ]
     def extract_padding(self, p):
         return "", p
+    
+bind_layers(NAS_IE, NAS)

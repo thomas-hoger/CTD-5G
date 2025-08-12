@@ -1,5 +1,5 @@
 from src.utils.protocols.ngap.layer.common import NGAP, NgapIEType, NgapProcedureCode, NGAP_IE
-from src.utils.protocols.ngap.layer.ies import General_IE_Value, PDU_SESSION_IE, UE_NGAP_IDs, User_Location_IE, FIVE_G_TMSI_IE
+from src.utils.protocols.ngap.layer.ies import General_IE_Value, PDU_SESSION_IE, UE_NGAP_IDs, User_Location_IE, FIVE_G_TMSI_IE, NAS_IE
 
 from src.utils.protocols.nas.layer.requests import nas_registration, nas_deregistration
 
@@ -23,7 +23,7 @@ def ngap_ctx_release_request(amf_id:int, ran_id:int, session_id_list:list[int]) 
     
     # PDU Session IDs
     session_id_list_bytes = [(session_id).to_bytes(2) for session_id in session_id_list]
-    p = p / NGAP_IE(id=NgapIEType.PDUSessionIDList) / PDU_SESSION_IE(count=1, session_list=session_id_list_bytes)
+    p = p / NGAP_IE(id=NgapIEType.PDUSessionIDList) / PDU_SESSION_IE(count=len(session_id_list)-1, session_list=session_id_list_bytes)
     
     # Cause
     p = p / NGAP_IE(id=NgapIEType.Cause, criticality=0x40) / General_IE_Value()
@@ -58,24 +58,25 @@ def ngap_ctx_release_command(amf_id:int, ran_id:int) -> Packet:
     )
     
     # Cause
-    p = p / NGAP_IE(id=NgapIEType.Cause, criticality=0x1) / General_IE_Value()
+    p = p / NGAP_IE(id=NgapIEType.Cause, criticality=0x40) / General_IE_Value()
     
     return p
 
-def ngap_register(ran_id:int, msin:int, nssai_list:int=[(1,0x010203),(1,0x112233)], nrCellID:int=1, plmnID:int=0x02f839, tac:int=0x1) -> Packet:
+def ngap_register(ran_ue_id:int, msin:int, nssai_list:int=[(1,0x010203),(1,0x112233)], nrCellID:int=1, plmnID:int=0x02f839, tac:int=0x1) -> Packet:
     
     # Procedure Type and IE List
     p = NGAP(
         procedureCode=NgapProcedureCode.InitialUEMessage,
-        criticality=0x1,
+        criticality=0x40,
         count=0x5,
     )
     
     # RAN ID
-    p = p / NGAP_IE(id=NgapIEType.RAN_UE_NGAP_ID) / General_IE_Value(value=(ran_id).to_bytes(2))
+    p = p / NGAP_IE(id=NgapIEType.RAN_UE_NGAP_ID) / General_IE_Value(value=(ran_ue_id).to_bytes(2))
     
     # NAS Register
-    p = p / NGAP_IE(id=NgapIEType.NAS_PDU) / nas_registration(msin, nssai_list, plmnID)
+    registration = nas_registration(msin, nssai_list, plmnID)
+    p = p / NGAP_IE(id=NgapIEType.NAS_PDU) / NAS_IE(length1=len(registration)+1, length2=len(registration)) / registration
     
     # User Location
     p = p / NGAP_IE(id=NgapIEType.UserLocationInformation) / User_Location_IE(
@@ -86,10 +87,10 @@ def ngap_register(ran_id:int, msin:int, nssai_list:int=[(1,0x010203),(1,0x112233
     )
     
     # Constant
-    p = p / NGAP_IE(id=NgapIEType.RRCEstablishmentCause, criticality=0x1) / General_IE_Value(value=b'\x18')
+    p = p / NGAP_IE(id=NgapIEType.RRCEstablishmentCause, criticality=0x40) / General_IE_Value(value=b'\x18')
     
     # Constant
-    p = p / NGAP_IE(id=NgapIEType.UEContextRequest, criticality=0x1) / General_IE_Value(value=b'\x00')
+    p = p / NGAP_IE(id=NgapIEType.UEContextRequest, criticality=0x40) / General_IE_Value(value=b'\x00')
     
     return p
 
@@ -98,7 +99,7 @@ def ngap_deregister(ran_id:int, tmsi:int, message_auth:int, sequence_number=0, n
     # Procedure Type and IE List
     p = NGAP(
         procedureCode=NgapProcedureCode.InitialUEMessage,
-        criticality=0x1,
+        criticality=0x40,
         count=0x6,
     )
     
@@ -106,7 +107,8 @@ def ngap_deregister(ran_id:int, tmsi:int, message_auth:int, sequence_number=0, n
     p = p / NGAP_IE(id=NgapIEType.RAN_UE_NGAP_ID) / General_IE_Value(value=(ran_id).to_bytes(2))
     
     # NAS Deregister
-    p = p / NGAP_IE(id=NgapIEType.NAS_PDU) / nas_deregistration(tmsi, message_auth, sequence_number, plmnID)
+    deregistration = nas_deregistration(tmsi, message_auth, sequence_number, plmnID)
+    p = p / NGAP_IE(id=NgapIEType.NAS_PDU) / NAS_IE(length1=len(deregistration)+1, length2=len(deregistration)) / deregistration 
     
     # User Location
     p = p / NGAP_IE(id=NgapIEType.UserLocationInformation) / User_Location_IE(
@@ -117,13 +119,13 @@ def ngap_deregister(ran_id:int, tmsi:int, message_auth:int, sequence_number=0, n
     )
     
     # Constant
-    p = p / NGAP_IE(id=NgapIEType.RRCEstablishmentCause, criticality=0x1) / General_IE_Value(value=b'\x12')
+    p = p / NGAP_IE(id=NgapIEType.RRCEstablishmentCause, criticality=0x40) / General_IE_Value(value=b'\x12')
     
     # TMSI
     p = p / NGAP_IE(id=NgapIEType.FiveG_S_TMSI) / FIVE_G_TMSI_IE(TMSI=tmsi)
     
     # Constant
-    p = p / NGAP_IE(id=NgapIEType.UEContextRequest, criticality=0x1) / General_IE_Value(value=b'\x00')
+    p = p / NGAP_IE(id=NgapIEType.UEContextRequest, criticality=0x40) / General_IE_Value(value=b'\x00')
     
     return p
 
@@ -137,11 +139,13 @@ def ngap_malformed() -> Packet:
         count=0x3030,
     )
     
+    registration = nas_registration(1, [1,0x10], plmnID)
+    
     # RAN ID
     p = p / NGAP_IE(id=NgapIEType.RAN_UE_NGAP_ID) / General_IE_Value(value=b'\x18')
-    p = p / NGAP_IE(id=NgapIEType.NAS_PDU) / nas_registration(1, [1,0x10], plmnID)
+    p = p / NGAP_IE(id=NgapIEType.NAS_PDU) / NAS_IE(length1=len(registration)+1, length2=len(registration)) / registration
     p = p / NGAP_IE(id=NgapIEType.UserLocationInformation) / User_Location_IE()
-    p = p / NGAP_IE(id=NgapIEType.RRCEstablishmentCause, criticality=0x1) / General_IE_Value(value=b'\x18')
-    p = p / NGAP_IE(id=NgapIEType.UEContextRequest, criticality=0x1) / General_IE_Value(value=b'\x00')
+    p = p / NGAP_IE(id=NgapIEType.RRCEstablishmentCause, criticality=0x40) / General_IE_Value(value=b'\x18')
+    p = p / NGAP_IE(id=NgapIEType.UEContextRequest, criticality=0x40) / General_IE_Value(value=b'\x00')
     
     return p

@@ -1,10 +1,10 @@
 from scapy.packet import Packet
-from scapy.fields import XBitField,PacketField, XByteField, X3BytesField, XNBytesField, LenField
+from scapy.fields import XBitField,PacketField, XByteField, X3BytesField, XNBytesField, ShortField
 
 class Deregistration_Mobile_Identity(Packet):
     name = "Mobile Identity"
     fields_desc = [
-        LenField("length", 11),
+        ShortField("length", 11),
         XByteField("type_of_id", 0xf2), # 5G-GUTI
         X3BytesField("plmnID", 0x02f839), # mcc = 208 (02 + f8 -> 20 8f -> 208) mnc = 93 (39 -> 93)
         XByteField("amf_region_id", 0xca), # 5G-GUTI

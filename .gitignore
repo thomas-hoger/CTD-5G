@@ -3,7 +3,6 @@ __pycache__/
 *.pyc
 local
 *.ipynb
-test_thomas
-test.py
+test*
 output
 *.pcap
