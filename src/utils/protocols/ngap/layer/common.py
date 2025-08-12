@@ -64,10 +64,16 @@ class NGAP(Packet):
     fields_desc = [
         ShortEnumField("procedureCode", None, NgapProcedureCode),
         XByteField("criticality", 0x0),
-        LenField("length", None, fmt="B"),
+        XByteField("length", None),
         ConditionalField(XByteField("asn_extra", 0), lambda pkt: pkt.length == 0x80),
         X3BytesField("count", 0),
         PacketListField("ie_list", [], NGAP_IE, count_from=lambda pkt: pkt.count)
     ]
+    
+    def post_build(self, p, pay):
+        if self.length is None:
+            length = len(p) + len(pay) - 4
+            p = p[:3] + (length).to_bytes(1) + p[4:]
+        return p+pay
     
 bind_layers(SCTPChunkData, NGAP, proto_id=60)
