@@ -58,9 +58,9 @@ class PFCPRequest:
             IE_list=[
                 pfcp.IE_FAR_Id(id=1),
                 pfcp.IE_ApplyAction(FORW=1),
-                pfcp.IE_OuterHeaderCreation(
-                    GTPUUDPIPV4=1, TEID=teid, ipv4=ue_addr, port=2152
-                ),
+                # pfcp.IE_OuterHeaderCreation(
+                #     GTPUUDPIPV4=1, TEID=teid, ipv4=ue_addr, port=2152
+                # ),
             ]
         )
             

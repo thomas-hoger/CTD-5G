@@ -51,7 +51,7 @@ class NFInstance:
             tuple: (status_code, response content as dict or str)
         """
 
-        url = f"http://{ip_list[nf_type.upper()]}:8000" + uri
+        url = f"http://{ip_list[nf_type.upper()]}:8080" + uri
 
         base_headers = {
             # "Content-Type": "application/json", # géré tout seul par .post .get et le fait de mettre data= ou json=
@@ -106,7 +106,8 @@ class NFInstance:
         where X is not currently assigned to any CN component or temporary NF instance.
         """
         
-        available_ips = [f"10.100.200.{i}" for i in range(1,256)]  
+        available_ips = [f"192.168.70.{i}" for i in range(1,256)] 
+        # available_ips = [f"10.100.200.{i}" for i in range(1,256)]  
         available_ips = [ip for ip in available_ips if ip not in ip_list.values()] # Avoid IPs already used by CN components
         
         addresses_used_by_temporary_nf = [nf.data["ipv4Addresses"][0] for nf in NFInstance.nf_list if "ipv4Addresses" in nf.data and nf.data["ipv4Addresses"]]
@@ -188,7 +189,7 @@ class NFInstance:
                       
                 # Replace apiPrefixes      
                 if 'apiPrefix' in service:
-                    service['apiPrefix'] = f"http://{ip_address}:8000"
+                    service['apiPrefix'] = f"http://{ip_address}:8080"
                                     
         # Minimum data required to register an NF instance
         data  = {
