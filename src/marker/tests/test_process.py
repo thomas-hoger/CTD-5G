@@ -84,7 +84,7 @@ def test_intervals():
         # Markers are not mixed
         assert marker_start.id == marker_stop.id 
         assert marker_start.type == marker_stop.type 
-
+        
 def test_replace():
     
     ip_to_replace = ip_list["EVIL"]
@@ -138,6 +138,7 @@ def test_get_packet_by_type():
     
     assert len(packets_by_type) == 2  
     
+    p_list_tot = []
     for type,p_list in packets_by_type.items():
         
         assert type
@@ -149,3 +150,7 @@ def test_get_packet_by_type():
         
         packets_with_markers = [p for p in p_list if Marker in p]
         assert len(packets_with_markers) == 0
+        
+        p_list_tot += p_list
+
+    assert len(p_list_tot) == 4 # 2 for benign and 2 for attacks
