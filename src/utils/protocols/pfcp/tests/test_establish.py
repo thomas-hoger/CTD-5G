@@ -8,13 +8,15 @@ import time
 
 def test_establish():
     
-    # Send association setup 
-    packet = PFCPRequest.association_setup(
-        src_addr = get_my_ip_from_prefix(), 
-        dst_addr = ip_list["UPF"])
-    send(packet) 
+    send(
+            PFCPRequest.association_setup(
+                src_addr=get_my_ip_from_prefix(),
+                dst_addr=ip_list["UPF"]
+            ),
+            verbose=False
+        )
     
-    time.sleep(5)
+    time.sleep(2)
     
     # Etablishment request
     send(
