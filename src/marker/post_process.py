@@ -15,6 +15,7 @@ class Interval:
     end: int | None
     id: int
     type: str
+    attack: bool
 
     def __contains__(self, value: int) -> bool:
         return self.end is not None and (self.start <= value <= self.end)
@@ -35,12 +36,11 @@ def _find_interval(intervals: list[Interval], marker_id:int, marker_type:str) ->
         if interval.id == marker_id and interval.type == marker_type:
             return interval
 
-def _extract_intervals(packets: PacketList, is_attack=True) -> list[Interval]:
+def _extract_intervals(packets: PacketList) -> list[Interval]:
     """
     Extracts intervals from a list of packets based on marker start/stop events.
     Args:
         packets (PacketList): List of packets to process.
-        is_attack (bool, optional): If True, extracts attack intervals; otherwise, extracts non-attack intervals. Defaults to True.
     Returns:
         list[Interval]: List of extracted intervals with start and end indices, marker id, and type.
     """
@@ -54,21 +54,20 @@ def _extract_intervals(packets: PacketList, is_attack=True) -> list[Interval]:
             
             # If marker is of the right nature
             marker:Marker = pkt[Marker]
-            if bool(marker.attack) == is_attack:
             
-                # If the marker is a start and don't already existe we create it
-                if marker.start == 1:
-                    interval = _find_interval(intervals, marker.id, marker.type)
-                    if not interval :
-                        intervals.append(
-                            Interval(i,None,marker.id,marker.type)
-                        )
-                        
-                # If the marker is a stop we modify its end index
-                else :
-                    interval = _find_interval(intervals, marker.id, marker.type)
-                    if interval:
-                        interval.end = i
+            # If the marker is a start and don't already existe we create it
+            if marker.start == 1:
+                interval = _find_interval(intervals, marker.id, marker.type)
+                if not interval :
+                    intervals.append(
+                        Interval(i,None,marker.id,marker.type, bool(marker.attack))
+                    )
+                    
+            # If the marker is a stop we modify its end index
+            else :
+                interval = _find_interval(intervals, marker.id, marker.type)
+                if interval:
+                    interval.end = i
 
     return intervals
 
@@ -115,16 +114,16 @@ def _filter_attacks(packets: PacketList) -> PacketList:
 def _filter_benigns(packets: PacketList) -> PacketList:
     return [p for p in packets if IP not in p or (p[IP].src != ip_list['EVIL'] or p[IP].dst != ip_list['EVIL'])]
 
-def get_packets_by_type(packets: PacketList, is_attack=True) -> dict[str:PacketList]:
+def get_packets_by_type(packets: PacketList) -> dict[str:PacketList]:
     
     packets_by_type = {} 
-    intervals       = _extract_intervals(packets, is_attack)
+    intervals       = _extract_intervals(packets)
     for interval in intervals:
         
         packet_interval = PacketList(packets[interval.start:interval.end])
             
         # if is attack, replace the ip and get only the attacks
-        if is_attack:
+        if interval.attack:
             packet_interval = _filter_attacks(packet_interval) 
             packet_interval =  _replace_addresses(packet_interval, ip_list["EVIL"])
             
@@ -152,7 +151,7 @@ def process(packets: PacketList, ip_to_replace:str) -> PacketList:
         PacketList: The processed list of packets with addresses replaced in attack intervals and markers removed.
     """
     
-    attack_intervals  = _extract_intervals(packets, is_attack=True)
+    attack_intervals  = [x for x in _extract_intervals(packets) if x.attack]
     processed_packets = PacketList([])
 
     last_end = 0
