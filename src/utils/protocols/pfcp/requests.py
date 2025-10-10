@@ -70,6 +70,29 @@ class PFCPRequest:
             / UDP(sport=8805, dport=8805)
             / pfcp_message
         )
+        
+    def seid_fuzzing(src_addr:str, dst_addr:str, ue_addr:str, seid:int, seq:int|None=None) -> Packet:
+        
+        if seq is None : 
+            seq = PFCPRequest.random_seq()
+            
+        pfcp_bytes   = bytes.fromhex(PFCPRequest.templates["modification"])
+        pfcp_message = pfcp.PFCP(pfcp_bytes)
+        
+        pfcp_message.seq = seq
+        pfcp_message.seid = seid
+        
+        pfcp_message["PFCPSessionModificationRequest"].IE_list[0].seid = seid
+        
+        pfcp_message["PFCPSessionModificationRequest"].IE_list[1].IE_list[2].IE_list[2].ipv4 = ue_addr
+        pfcp_message["PFCPSessionModificationRequest"].IE_list[2].IE_list[2].IE_list[2].ipv4 = ue_addr
+        
+        # Build the complete packet
+        return (
+            IP(src=src_addr, dst=dst_addr)
+            / UDP(sport=8805, dport=8805)
+            / pfcp_message
+        )
 
     def session_modification(src_addr:str, dst_addr:str, ue_addr:str, seid:int, teid:int, far_id:int, seq:int|None=None, actions:list[str]=["FORW"]) -> Packet:
 

@@ -7,6 +7,7 @@ from src.utils.protocols.pfcp.requests import PFCPRequest
 
 import pytest
 from scapy.all import send
+import random
 
 @pytest.fixture(autouse=True)
 def clear_ues():
@@ -28,9 +29,10 @@ def test_pfcp_in_gtp():
     session = test_ue.sessions[0]
     
     # Create the encapsulated packet
-    pfcp_packet = PFCPRequest.association_setup(
+    pfcp_packet = PFCPRequest.session_deletion(
         src_addr = session.address, 
-        dst_addr = ip_list["UPF"]
+        dst_addr = ip_list["UPF"],
+        seid=random.randint(1, PFCPRequest.max_seid)
     )
     
     # Send gtp uplink packet
