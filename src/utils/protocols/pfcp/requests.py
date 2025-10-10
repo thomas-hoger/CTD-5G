@@ -20,7 +20,7 @@ class PFCPRequest:
     def random_seq():
         return random.randint(1, 0xffff)
 
-    def session_establishment(smf_addr:str, upf_addr:str, ue_addr:str, seid:int, teid:int, seq:int|None=None) -> Packet:
+    def session_establishment(src_addr:str, dst_addr:str, ue_addr:str, seid:int, teid:int, seq:int|None=None) -> Packet:
         
         if seq is None : 
             seq = PFCPRequest.random_seq()
@@ -31,14 +31,14 @@ class PFCPRequest:
         pfcp_message.seq = seq
         
         # F-SEID IE
-        pfcp_message["PFCPSessionEstablishmentRequest"].IE_list[1].ipv4 = smf_addr
+        pfcp_message["PFCPSessionEstablishmentRequest"].IE_list[1].ipv4 = src_addr
         pfcp_message["PFCPSessionEstablishmentRequest"].IE_list[1].seid = seid
 
         # PDR -> PDI -> FTEID (for PDR 1 and 3)
         pfcp_message["PFCPSessionEstablishmentRequest"].IE_list[2].IE_list[2].IE_list[1].TEID = teid
-        pfcp_message["PFCPSessionEstablishmentRequest"].IE_list[2].IE_list[2].IE_list[1].ipv4 = upf_addr
+        pfcp_message["PFCPSessionEstablishmentRequest"].IE_list[2].IE_list[2].IE_list[1].ipv4 = dst_addr
         pfcp_message["PFCPSessionEstablishmentRequest"].IE_list[4].IE_list[2].IE_list[1].TEID = teid
-        pfcp_message["PFCPSessionEstablishmentRequest"].IE_list[4].IE_list[2].IE_list[1].ipv4 = upf_addr
+        pfcp_message["PFCPSessionEstablishmentRequest"].IE_list[4].IE_list[2].IE_list[1].ipv4 = dst_addr
 
         # PDR -> PDI -> UE IP Address (for each PDR)
         pfcp_message["PFCPSessionEstablishmentRequest"].IE_list[2].IE_list[2].IE_list[3].ipv4 = ue_addr
@@ -48,7 +48,7 @@ class PFCPRequest:
 
        # Build the complete packet
         return (
-            IP(src=smf_addr, dst=upf_addr)
+            IP(src=src_addr, dst=dst_addr)
             / UDP(sport=8805, dport=8805)
             / pfcp_message
         )
