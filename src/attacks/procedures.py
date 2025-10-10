@@ -82,7 +82,7 @@ class Attacks():
         nf_list = ["UDM", "AMF", "NRF"] 
         nf = random.choice(nf_list)
         print(f"Fuzzing NF: {nf}")
-        result = CNFuzzing().fuzz(nf, nb_file=1, nb_url=10, nb_ite=10, nb_method=1)
+        result = CNFuzzing().fuzz(nf, nb_file=1, nb_url=3, nb_ite=30, nb_method=1)
         return len(result) > 0
         
         # SESSION MANAGEMENT
