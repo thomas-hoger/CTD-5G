@@ -28,7 +28,8 @@ class PFCPRequest:
         pfcp_bytes   = bytes.fromhex(PFCPRequest.templates["establishment"])
         pfcp_message = pfcp.PFCP(pfcp_bytes)
         
-        pfcp_message.seq = seq
+        pfcp_message.seq  = seq
+        pfcp_message.seid = seid
         
         # F-SEID IE
         pfcp_message["PFCPSessionEstablishmentRequest"].IE_list[1].ipv4 = src_addr
