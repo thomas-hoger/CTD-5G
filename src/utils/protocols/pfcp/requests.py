@@ -31,15 +31,17 @@ class PFCPRequest:
         pfcp_message.seq  = seq
         pfcp_message.seid = seid
         
+        # If we put another address as the source, the UPF will not find it and do a kernel panic
+        # pfcp_message["PFCPSessionEstablishmentRequest"].IE_list[1].ipv4 = src_addr 
+        
         # F-SEID IE
-        pfcp_message["PFCPSessionEstablishmentRequest"].IE_list[1].ipv4 = src_addr
         pfcp_message["PFCPSessionEstablishmentRequest"].IE_list[1].seid = seid
 
         # PDR -> PDI -> FTEID (for PDR 1 and 3)
         pfcp_message["PFCPSessionEstablishmentRequest"].IE_list[2].IE_list[2].IE_list[1].TEID = teid
-        pfcp_message["PFCPSessionEstablishmentRequest"].IE_list[2].IE_list[2].IE_list[1].ipv4 = dst_addr
+        # pfcp_message["PFCPSessionEstablishmentRequest"].IE_list[2].IE_list[2].IE_list[1].ipv4 = dst_addr
         pfcp_message["PFCPSessionEstablishmentRequest"].IE_list[4].IE_list[2].IE_list[1].TEID = teid
-        pfcp_message["PFCPSessionEstablishmentRequest"].IE_list[4].IE_list[2].IE_list[1].ipv4 = dst_addr
+        # pfcp_message["PFCPSessionEstablishmentRequest"].IE_list[4].IE_list[2].IE_list[1].ipv4 = dst_addr
 
         # PDR -> PDI -> UE IP Address (for each PDR)
         pfcp_message["PFCPSessionEstablishmentRequest"].IE_list[2].IE_list[2].IE_list[3].ipv4 = ue_addr
