@@ -32,6 +32,7 @@ class PFCPRequest:
         pfcp_message.seid = seid
         
         # If we put another address as the source, the UPF will not find it and do a kernel panic
+        # https://github.com/free5gc/go-upf/blob/9740983cfc6e6f85e0419423cd73f0506e258901/internal/pfcp/session.go#L402
         # pfcp_message["PFCPSessionEstablishmentRequest"].IE_list[1].ipv4 = src_addr 
         
         # F-SEID IE
