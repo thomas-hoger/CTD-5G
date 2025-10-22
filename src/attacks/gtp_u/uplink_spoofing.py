@@ -5,7 +5,7 @@ from src.utils.protocols.pfcp.requests import PFCPRequest
 
 def gtp_uplink_packet(src_addr:str, dst_addr:str, tunnel_dst_addr:str, ue_addr:str, teid:int, seq:int|None=None) -> Packet:
 
-    gtp_message_template = "36ff005c000000190005008501000100"
+    gtp_message_template = "34ff005c0000000c0000008501100100"
     gtp_bytes = bytes.fromhex(gtp_message_template)
     gtp_message = GTP_U_Header(gtp_bytes)
     gtp_message.teid = teid

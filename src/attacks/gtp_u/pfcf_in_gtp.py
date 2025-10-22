@@ -4,7 +4,7 @@ from scapy.all import Packet
 
 def pfcp_in_gtp_packet(src_addr:str, dst_addr:str, teid:int, pfcp_packet: Packet) -> Packet:
     
-    gtp_message_template = "36ff005c000000190005008501000100"
+    gtp_message_template = "34ff005c0000000c0000008501100100"
     gtp_bytes = bytes.fromhex(gtp_message_template)
     gtp_message = GTP_U_Header(gtp_bytes)
     gtp_message.teid = teid
