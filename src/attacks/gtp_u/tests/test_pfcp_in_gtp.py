@@ -24,24 +24,29 @@ def clear_ues():
 def test_pfcp_in_gtp():
     
     # Create new UE
-    test_imsi = UserEquipment.get_available_imsi() # Get a random IMSI that is not currently registered
-    test_ue:UserEquipment|None = UserEquipment.register_new(test_imsi)
-    session = test_ue.sessions[0]
+    # test_imsi = UserEquipment.get_available_imsi() # Get a random IMSI that is not currently registered
+    # test_ue:UserEquipment|None = UserEquipment.register_new(test_imsi)
+    # session = test_ue.sessions[0]
     
     # Create the encapsulated packet
     pfcp_packet = PFCPRequest.session_deletion(
-        src_addr = session.address, 
-        dst_addr = ip_list["UPF"],
+        src_addr = "10.1.1.2", 
+        dst_addr = "192.168.70.134",
         seid=random.randint(1, PFCPRequest.max_seid)
     )
     
-    # Send gtp uplink packet
-    packet = pfcp_in_gtp_packet(
-        src_addr = get_my_ip_from_prefix(), 
-        dst_addr = ip_list["UPF"],
-        teid = session.teid,
-        pfcp_packet = pfcp_packet
-    )
-    send(packet)
+    for i in range(10):
+    
+        # Send gtp uplink packet
+        packet = pfcp_in_gtp_packet(
+            src_addr = "10.0.1.2", 
+            dst_addr = "192.168.70.134",
+            teid = i,
+            pfcp_packet = pfcp_packet
+        )
+        print(packet.show())
+
+        send(packet)
+    assert False
     
     # by sniffing the network we should see a association response from the UPF  

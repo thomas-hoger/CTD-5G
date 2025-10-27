@@ -21,18 +21,15 @@ class PFCPRequest:
 
         if seq is None : 
             seq = PFCPRequest.random_seq()
-
+            
+        message_template = "2005001e3f39a600003c000902076f61692d736d6600600004eca4c4580059000103"
+        message_bytes = bytes.fromhex(message_template)
+            
         # Build the complete packet
         return (
             IP(src=src_addr, dst=dst_addr) 
             / UDP(sport=8805, dport=8805) 
-            / pfcp.PFCP(version=1, message_type=5, seid=0, S=0, seq=int(seq)) # The first seid is always supposed to be 0 and is expected to be different from the 2nd one           
-            / pfcp.PFCPAssociationSetupRequest(
-                IE_list=[
-                    pfcp.IE_NodeId(id_type=0, ipv4=src_addr),
-                    pfcp.IE_RecoveryTimeStamp(timestamp=int(time.time()))
-                ]
-            )
+            / pfcp.PFCP(message_bytes) # The first seid is always supposed to be 0 and is expected to be different from the 2nd one           
         )
 
     def session_establishment(src_addr:str, dst_addr:str, ue_addr:str, seid:int, teid:int, seq:int|None=None) -> Packet:
