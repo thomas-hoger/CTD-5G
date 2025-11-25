@@ -17,7 +17,7 @@ class NFInstance:
         "CHF",
         "NEF",
         "NSSF",
-        "PCF",
+        # "PCF",  # If the MITM spoof a PCF, the AMF will crash when posting http://10.100.200.66:8000/npcf-am-policy-control/v1/policies"
         "SMF",
         "UDM",
         "UDR",
@@ -134,8 +134,12 @@ class NFInstance:
             nf_type        = data["nfType"]
         except Exception:
             return None
-        
-        status, _ = NFInstance.request_cn("NRF", data, "PUT", f"/nnrf-nfm/v1/nf-instances/{nf_instance_id}", display=display)
+
+        retry  = 0
+        status = 0
+        if retry < 3 and not (200 <= status < 300 ):
+            status, _ = NFInstance.request_cn("NRF", data, "PUT", f"/nnrf-nfm/v1/nf-instances/{nf_instance_id}", display=display)
+            retry += 1
 
         if 200 <= status < 300 :
             instance = NFInstance(nf_instance_id, nf_type, data)
@@ -204,7 +208,13 @@ class NFInstance:
     def remove_nf(instance: NFInstance, token: str, display=True) -> bool:
         """Remove a Network Function (NF) instance from the system."""
         uri = f"/nnrf-nfm/v1/nf-instances/{instance.nf_instance_id}"
-        status, _ = NFInstance.request_cn("NRF", {}, "DELETE", uri, token=token, display=display)
+        
+        retry  = 0
+        status = 0
+        if retry < 3 and not (200 <= status < 300 ):
+            status, _ = NFInstance.request_cn("NRF", {}, "DELETE", uri, token=token, display=display)
+            retry += 1
+        
         return 200 <= status < 300 
 
     def get_token(instance: NFInstance, scope="nnrf-disc", target_type="NRF", additionnal_data={}, display=True) -> str | None:
