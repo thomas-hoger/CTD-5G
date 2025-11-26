@@ -11,9 +11,9 @@ The attacks span multiple layers and functionalities of the 5G network, includin
 
 ## API calls in the CN
 
-Toutes les attaques du CN nécessitent l’enregistrement d’une Network Function (NF) pour obtenir un token JWT. De plus, il est souvent nécessaire de connaître la liste des NF déjà enregistrées dans le NRF.
+All CN attacks require the registration of a Network Function (NF) to obtain a JWT token. In addition, it is often necessary to know the list of NFs already registered in the NRF.
 
-Pour cela, nous avons mis en place trois fonctions principales : `NF registration`, `JWT acquisition`, et `discovery requests`, toutes définies dans [`src/utils/protocols/api_cn/instance.py`](src/utils/protocols/api_cn/instance.py). Ces fonctions utilisent la bibliothèque `httpx` pour gérer les interactions HTTP avec le NRF.
+To this end, we have established three main functions : `NF registration`, `JWT acquisition`, and `discovery requests`. Details can be found in [`src/utils/protocols/api_cn/instance.py`](src/utils/protocols/api_cn/instance.py). These functions use the `httpx` library to handle HTTP interactions with the NRF.
 
 > [!WARNING]
 > All API-based attacks on the core network require registering a network function (NF) and obtaining a JWT token for it. In the case of an attacker sending only a few requests, there's no need to remove the NF afterward. However, since our attack scenarios involve looping requests over several hours, this can eventually overload the NRF and lead to a denial of service. To avoid this, we ensure that our NFs are removed at the end of each attack.
