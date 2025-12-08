@@ -2,7 +2,6 @@
 __pycache__/
 *.pyc
 local
-*.ipynb
 test*
-output
+*/output/*
 *.pcap

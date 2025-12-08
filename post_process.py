@@ -26,17 +26,17 @@ for filename in tqdm(os.listdir(folder), desc="Labelling and processing", unit="
         
         # Export labels
         os.makedirs(os.path.join(folder, "labels"), exist_ok=True)
-        df.to_csv(os.path.join(folder, "labels", f"{filename}.csv"), index=False)
+        df.to_csv(os.path.join(folder, "labels", filename.split(".")[0] + ".csv"), index=False)
         
         # Export processed pcap
         os.makedirs(os.path.join(folder, "processed"), exist_ok=True)
-        wrpcap(os.path.join(folder, "processed", f"{filename}.pcap"), packets_processed)
+        wrpcap(os.path.join(folder, "processed", filename), packets_processed)
 
 # 2 - Dissection
 for filename in tqdm(os.listdir(folder), desc="Dissection", unit="file"):
     
-    packets = pyshark.FileCapture(os.path.join(folder, "processed", f"{filename}.pcap"))
-    df = pd.read_csv(os.path.join(folder, "labels", f"{filename}.csv"))
+    packets = pyshark.FileCapture(os.path.join(folder, "processed", filename))
+    df = pd.read_csv(os.path.join(folder, "labels", filename.split(".")[0] + ".csv"))
     dissection_json = dissect_packets(packets, df)
     
     banned_features = [
@@ -54,5 +54,5 @@ for filename in tqdm(os.listdir(folder), desc="Dissection", unit="file"):
     dissection_json_clean = dissection_clean(dissection_json, banned_features)
     
     os.makedirs(os.path.join(folder, "dissection"), exist_ok=True)
-    with open(os.path.join(folder, "dissection", f"{filename}.json"), "w") as f:
+    with open(os.path.join(folder, "dissection", filename.split(".")[0] + ".json"), "w") as f:
         json.dump(dissection_json_clean, f)
