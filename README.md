@@ -109,8 +109,9 @@ Detailed descriptions are available in the [src/attacks](./src/attacks) and [src
 - python3-venv is installed (optionnal but recommended)
 
 ### Install free5gc and UERANSIM dockers
+<!-- git clone https://github.com/thomas-hoger/CTD-5G.git --> 
 ```
-git clone https://github.com/thomas-hoger/free5gc-compose.git
+git clone https://anonymous.4open.science/r/free5gc-compose
 cd free5gc-compose/base
 git clone --recursive -j `nproc` https://github.com/free5gc/free5gc.git
 cd ..
@@ -124,8 +125,8 @@ cd ..
 git clone https://github.com/jdegre/5GC_APIs.git
 ```
 ### Install CTD5G
-```
 <!-- git clone https://github.com/thomas-hoger/CTD-5G.git --> 
+```
 git clone https://anonymous.4open.science/r/free5gc-compose
 cd CTD-5G
 python3 -m venv .venv
