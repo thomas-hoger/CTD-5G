@@ -12,6 +12,8 @@ This repository provides the community with tools to generate plausible 5G contr
 
 We offer both a tool and a transparent methodology, with the aim of establishing a common foundation for anomaly‑detection research. While this base may not cover every possible attack or surface, our intention is for it to be co‑evolutionary and allow the community to iteratively improve it in a coordinated direction.
 
+<!---
+
 The 2025 version of CTD‑5G has been published on Zenodo; please cite it using the following DOI and link:
 
 ```
@@ -19,6 +21,7 @@ The 2025 version of CTD‑5G has been published on Zenodo; please cite it using 
     Control Traffic Dataset for 5G Networks (CTD5G) (1.0) [Data set]. 
     Zenodo. https://doi.org/10.5281/zenodo.15853959
 ```
+-->
 
 The dataset is organized into two main directories:
 
@@ -183,8 +186,9 @@ If UE registration repeatedly fails, it's often a sign that the **core network i
 - A critical network function (NF) being down or misconfigured.
 - The NRF (Network Repository Function) not responding or rejecting registrations and/or JWT creation.
 - création de token oauth refusé par le NRF
-Make sure all essential NFs are running and correctly registered with the NRF. You can check the current NF list and status using the `get_nf_info` function available in [`src/utils/protocols/api_cn/instance.py`](src/utils/protocols/api_cn/instance.py). 
+Make sure all essential NFs are running and correctly registered with the NRF. You can check the current NF list and status using the `get_nf_info` function available in [`src/utils/protocols/api_cn/instance.py`](src/utils/protocols/api_cn/instance.py).
 
+<!---
 ## Licence
 Copyright © 2025 CNRS-LAAS
 
@@ -203,4 +207,6 @@ If our paper helps your research, please cite:
 (Paper in reviewing)
 ```
 
+
 For any questions or issues, please contact thomas.hoger@laas.fr
+-->
