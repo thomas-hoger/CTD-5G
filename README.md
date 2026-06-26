@@ -12,8 +12,6 @@ This repository provides the community with tools to generate plausible 5G contr
 
 We offer both a tool and a transparent methodology, with the aim of establishing a common foundation for anomaly‑detection research. While this base may not cover every possible attack or surface, our intention is for it to be co‑evolutionary and allow the community to iteratively improve it in a coordinated direction.
 
-test
-
 <!---
 
 The 2025 version of CTD‑5G has been published on Zenodo; please cite it using the following DOI and link:
