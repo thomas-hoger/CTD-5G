@@ -125,7 +125,8 @@ git clone https://github.com/jdegre/5GC_APIs.git
 ```
 ### Install CTD5G
 ```
-git clone https://github.com/thomas-hoger/CTD-5G.git
+<!-- git clone https://github.com/thomas-hoger/CTD-5G.git --> 
+git clone https://anonymous.4open.science/r/free5gc-compose
 cd CTD-5G
 python3 -m venv .venv
 source .venv/bin/activate
